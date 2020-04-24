@@ -1,0 +1,264 @@
+
+
+<!DOCTYPE html>
+<!--[if IE 8]><html class="no-js lt-ie9" lang="en" > <![endif]-->
+<!--[if gt IE 8]><!--> <html class="no-js" lang="en" > <!--<![endif]-->
+<head>
+  <meta charset="utf-8">
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  <title>xrspatial.hillshade &mdash; Xarray_spatial  documentation</title>
+  
+
+  
+  
+  
+  
+
+  
+  
+  <script type="text/javascript" src="../../assets/js/modernizr.min.js"></script>
+  
+    
+      <script type="text/javascript" id="documentation_options" data-url_root="../../" src="../../assets/documentation_options.js"></script>
+        <script src="../../assets/jquery.js"></script>
+        <script src="../../assets/underscore.js"></script>
+        <script src="../../assets/doctools.js"></script>
+        <script src="../../assets/language_data.js"></script>
+        <script crossorigin="anonymous" integrity="sha256-Ae2Vz/4ePdIu6ZyI/5ZGsYnb+m0JlOmKPjt6XZ9JJkA=" src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.3.4/require.min.js"></script>
+    
+    <script type="text/javascript" src="../../js/theme.js"></script>
+
+    
+
+  <link rel="stylesheet" href="../../assets/css/theme.css" type="text/css" />
+  <link rel="stylesheet" href="../../assets/pygments.css" type="text/css" />
+  <link rel="stylesheet" href="../../assets/css/xarray_theme.css" type="text/css" />
+    <link rel="index" title="Index" href="../../genindex.html" />
+    <link rel="search" title="Search" href="../../search.html" /> 
+</head>
+
+<body class="wy-body-for-nav">
+
+   
+  <div class="wy-grid-for-nav">
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+          
+
+          
+            <a href="../../index.html">
+          
+
+          
+            
+            <img src="../../assets/logo.png" class="logo" alt="Logo"/>
+          
+          </a>
+
+          
+            
+            
+          
+
+          
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+          
+        </div>
+
+        <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+          
+            
+            
+              
+            
+            
+              <ul>
+<li class="toctree-l1"><a class="reference internal" href="../../slope.html">Slope</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../aspect.html">Aspect</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../curvature.html">Curvature</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../hillshade.html">Hillshade</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../normalized.html">Normalized Difference Vegetation Index (NDVI)</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../focal.html">Focal Statistics</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../zonal_statistics.html">Zonal Statistics</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../zonal_cross.html">Zonal Cross Tabulate</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../viewshed.html">Viewshed</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../proximity.html">Proximity</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../bump.html">Bump Mapping</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../perlin.html">Perlin Noise</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../procedural.html">Procedural Terrain Generation</a></li>
+</ul>
+
+            
+          
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" aria-label="top navigation">
+        
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../../index.html">Xarray_spatial</a>
+        
+      </nav>
+
+
+      <div class="wy-nav-content">
+        
+        <div class="rst-content">
+        
+          
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<div role="navigation" aria-label="breadcrumbs navigation">
+
+  <ul class="wy-breadcrumbs">
+    
+      <li><a href="../../index.html">Docs</a> &raquo;</li>
+        
+          <li><a href="../index.html">Module code</a> &raquo;</li>
+        
+      <li>xrspatial.hillshade</li>
+    
+    
+      <li class="wy-breadcrumbs-aside">
+        
+      </li>
+    
+  </ul>
+
+  
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+            
+  <h1>Source code for xrspatial.hillshade</h1><div class="highlight"><pre>
+<span></span><span class="kn">from</span> <span class="nn">__future__</span> <span class="kn">import</span> <span class="n">division</span><span class="p">,</span> <span class="n">absolute_import</span>
+
+<span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
+
+<span class="kn">from</span> <span class="nn">xarray</span> <span class="kn">import</span> <span class="n">DataArray</span>
+
+
+<span class="c1"># TODO: add optional name parameter `name=&#39;hillshade&#39;`</span>
+<div class="viewcode-block" id="hillshade"><a class="viewcode-back" href="../../hillshade.html#xrspatial.hillshade.hillshade">[docs]</a><span class="k">def</span> <span class="nf">hillshade</span><span class="p">(</span><span class="n">agg</span><span class="p">,</span> <span class="n">azimuth</span><span class="o">=</span><span class="mi">225</span><span class="p">,</span> <span class="n">angle_altitude</span><span class="o">=</span><span class="mi">25</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Illuminates 2D DataArray from specific azimuth and altitude.</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    agg : DataArray</span>
+<span class="sd">    altitude : int, optional (default: 30)</span>
+<span class="sd">        Altitude angle of the sun specified in degrees.</span>
+<span class="sd">    azimuth : int, optional (default: 315)</span>
+<span class="sd">        The angle between the north vector and the perpendicular projection</span>
+<span class="sd">        of the light source down onto the horizon specified in degrees.</span>
+<span class="sd">    cmap : list of colors or matplotlib.colors.Colormap, optional</span>
+<span class="sd">        The colormap to use. Can be either a list of colors (in any of the</span>
+<span class="sd">        formats described above), or a matplotlib colormap object.</span>
+<span class="sd">        Default is `[&quot;lightgray&quot;, &quot;black&quot;]`</span>
+<span class="sd">    alpha : int, optional</span>
+<span class="sd">        Value between 0 - 255 representing the alpha value of pixels which contain</span>
+<span class="sd">        data (i.e. non-nan values). Regardless of this value, `NaN` values are</span>
+<span class="sd">        set to fully transparent.</span>
+
+<span class="sd">    Returns</span>
+<span class="sd">    -------</span>
+<span class="sd">    Datashader Image</span>
+
+<span class="sd">    Notes:</span>
+<span class="sd">    ------</span>
+<span class="sd">    Algorithm References:</span>
+<span class="sd">     - http://geoexamples.blogspot.com/2014/03/shaded-relief-images-using-gdal-python.html</span>
+
+
+<span class="sd">    Examples</span>
+<span class="sd">    --------</span>
+
+<span class="sd">    &gt;&gt;&gt; hillshade_val = np.array([[1, 1, 0, 2],[0, 2, 1, 2]])</span>
+<span class="sd">    &gt;&gt;&gt; hillshade_array = xarray.DataArray(hillshade_val)</span>
+<span class="sd">    &gt;&gt;&gt; xrspatial.hillshade(hillshade_array)</span>
+<span class="sd">    Out[]:</span>
+<span class="sd">    &lt;xarray.DataArray &#39;hillshade&#39; (dim_0: 2, dim_1: 4)&gt;</span>
+<span class="sd">    array([[0.87599507, 0.32044456, 0.53406336, 0.8811    ],</span>
+<span class="sd">       [0.97870938, 0.53406336, 0.42284117, 0.87599507]])</span>
+<span class="sd">    Dimensions without coordinates: dim_0, dim_1</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">azimuth</span> <span class="o">=</span> <span class="mf">360.0</span> <span class="o">-</span> <span class="n">azimuth</span>
+    <span class="n">x</span><span class="p">,</span> <span class="n">y</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">gradient</span><span class="p">(</span><span class="n">agg</span><span class="o">.</span><span class="n">data</span><span class="p">)</span>
+    <span class="n">slope</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">pi</span><span class="o">/</span><span class="mf">2.</span> <span class="o">-</span> <span class="n">np</span><span class="o">.</span><span class="n">arctan</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">sqrt</span><span class="p">(</span><span class="n">x</span><span class="o">*</span><span class="n">x</span> <span class="o">+</span> <span class="n">y</span><span class="o">*</span><span class="n">y</span><span class="p">))</span>
+    <span class="n">aspect</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">arctan2</span><span class="p">(</span><span class="o">-</span><span class="n">x</span><span class="p">,</span> <span class="n">y</span><span class="p">)</span>
+    <span class="n">azimuthrad</span> <span class="o">=</span> <span class="n">azimuth</span><span class="o">*</span><span class="n">np</span><span class="o">.</span><span class="n">pi</span><span class="o">/</span><span class="mf">180.</span>
+    <span class="n">altituderad</span> <span class="o">=</span> <span class="n">angle_altitude</span><span class="o">*</span><span class="n">np</span><span class="o">.</span><span class="n">pi</span><span class="o">/</span><span class="mf">180.</span>
+    <span class="n">shaded</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">sin</span><span class="p">(</span><span class="n">altituderad</span><span class="p">)</span> <span class="o">*</span> <span class="n">np</span><span class="o">.</span><span class="n">sin</span><span class="p">(</span><span class="n">slope</span><span class="p">)</span> <span class="o">+</span> <span class="n">np</span><span class="o">.</span><span class="n">cos</span><span class="p">(</span><span class="n">altituderad</span><span class="p">)</span> <span class="o">*</span> <span class="n">np</span><span class="o">.</span><span class="n">cos</span><span class="p">(</span><span class="n">slope</span><span class="p">)</span><span class="o">*</span><span class="n">np</span><span class="o">.</span><span class="n">cos</span><span class="p">((</span><span class="n">azimuthrad</span> <span class="o">-</span> <span class="n">np</span><span class="o">.</span><span class="n">pi</span><span class="o">/</span><span class="mf">2.</span><span class="p">)</span> <span class="o">-</span> <span class="n">aspect</span><span class="p">)</span>
+    <span class="n">data</span> <span class="o">=</span> <span class="p">(</span><span class="n">shaded</span> <span class="o">+</span> <span class="mi">1</span><span class="p">)</span> <span class="o">/</span> <span class="mi">2</span>
+    <span class="k">return</span> <span class="n">DataArray</span><span class="p">(</span><span class="n">data</span><span class="p">,</span> <span class="n">name</span><span class="o">=</span><span class="s1">&#39;hillshade&#39;</span><span class="p">,</span> <span class="n">dims</span><span class="o">=</span><span class="n">agg</span><span class="o">.</span><span class="n">dims</span><span class="p">,</span>
+                     <span class="n">coords</span><span class="o">=</span><span class="n">agg</span><span class="o">.</span><span class="n">coords</span><span class="p">,</span> <span class="n">attrs</span><span class="o">=</span><span class="n">agg</span><span class="o">.</span><span class="n">attrs</span><span class="p">)</span></div>
+</pre></div>
+
+           </div>
+           
+          </div>
+          <footer>
+  
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>
+        &copy; Copyright 2020, Brendan Collins
+
+    </p>
+  </div>
+  Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a <a href="https://github.com/rtfd/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>. 
+
+</footer>
+
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+  
+
+
+  <script type="text/javascript">
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script>
+
+  
+  
+    
+   
+
+</body>
+</html>

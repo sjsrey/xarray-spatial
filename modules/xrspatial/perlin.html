@@ -1,0 +1,312 @@
+
+
+<!DOCTYPE html>
+<!--[if IE 8]><html class="no-js lt-ie9" lang="en" > <![endif]-->
+<!--[if gt IE 8]><!--> <html class="no-js" lang="en" > <!--<![endif]-->
+<head>
+  <meta charset="utf-8">
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  <title>xrspatial.perlin &mdash; Xarray_spatial  documentation</title>
+  
+
+  
+  
+  
+  
+
+  
+  
+  <script type="text/javascript" src="../../assets/js/modernizr.min.js"></script>
+  
+    
+      <script type="text/javascript" id="documentation_options" data-url_root="../../" src="../../assets/documentation_options.js"></script>
+        <script src="../../assets/jquery.js"></script>
+        <script src="../../assets/underscore.js"></script>
+        <script src="../../assets/doctools.js"></script>
+        <script src="../../assets/language_data.js"></script>
+        <script crossorigin="anonymous" integrity="sha256-Ae2Vz/4ePdIu6ZyI/5ZGsYnb+m0JlOmKPjt6XZ9JJkA=" src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.3.4/require.min.js"></script>
+    
+    <script type="text/javascript" src="../../js/theme.js"></script>
+
+    
+
+  
+  <link rel="stylesheet" href="../../assets/css/theme.css" type="text/css" />
+  <link rel="stylesheet" href="../../assets/pygments.css" type="text/css" />
+  <link rel="stylesheet" href="../../assets/css/xarray_theme.css" type="text/css" />
+    <link rel="index" title="Index" href="../../genindex.html" />
+    <link rel="search" title="Search" href="../../search.html" /> 
+</head>
+
+<body class="wy-body-for-nav">
+
+   
+  <div class="wy-grid-for-nav">
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+          
+
+          
+            <a href="../../index.html">
+          
+
+          
+            
+            <img src="../../assets/logo.png" class="logo" alt="Logo"/>
+          
+          </a>
+
+          
+            
+            
+          
+
+          
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+          
+        </div>
+
+        <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+          
+            
+            
+              
+            
+            
+              <ul>
+<li class="toctree-l1"><a class="reference internal" href="../../slope.html">Slope</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../aspect.html">Aspect</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../curvature.html">Curvature</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../hillshade.html">Hillshade</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../normalized.html">Normalized Difference Vegetation Index (NDVI)</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../focal.html">Focal Statistics</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../zonal_statistics.html">Zonal Statistics</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../zonal_cross.html">Zonal Cross Tabulate</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../viewshed.html">Viewshed</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../proximity.html">Proximity</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../bump.html">Bump Mapping</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../perlin.html">Perlin Noise</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../procedural.html">Procedural Terrain Generation</a></li>
+</ul>
+
+            
+          
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" aria-label="top navigation">
+        
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../../index.html">Xarray_spatial</a>
+        
+      </nav>
+
+
+      <div class="wy-nav-content">
+        
+        <div class="rst-content">
+        
+          
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<div role="navigation" aria-label="breadcrumbs navigation">
+
+  <ul class="wy-breadcrumbs">
+    
+      <li><a href="../../index.html">Docs</a> &raquo;</li>
+        
+          <li><a href="../index.html">Module code</a> &raquo;</li>
+        
+      <li>xrspatial.perlin</li>
+    
+    
+      <li class="wy-breadcrumbs-aside">
+        
+      </li>
+    
+  </ul>
+
+  
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+            
+  <h1>Source code for xrspatial.perlin</h1><div class="highlight"><pre>
+<span></span><span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
+
+<span class="kn">from</span> <span class="nn">xarray</span> <span class="kn">import</span> <span class="n">DataArray</span>
+
+<span class="kn">from</span> <span class="nn">xrspatial.utils</span> <span class="kn">import</span> <span class="n">ngjit</span>
+
+
+<span class="c1"># TODO: change parameters to take agg instead of height / width</span>
+<div class="viewcode-block" id="perlin"><a class="viewcode-back" href="../../perlin.html#xrspatial.perlin.perlin">[docs]</a><span class="k">def</span> <span class="nf">perlin</span><span class="p">(</span><span class="n">width</span><span class="p">,</span> <span class="n">height</span><span class="p">,</span> <span class="n">freq</span><span class="o">=</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="mi">1</span><span class="p">),</span> <span class="n">seed</span><span class="o">=</span><span class="mi">5</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Generate perlin noise aggregate</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    width : int</span>
+<span class="sd">    height : int</span>
+<span class="sd">    freq : tuple of (x, y) frequency multipliers</span>
+<span class="sd">    seed : int</span>
+
+<span class="sd">    Returns</span>
+<span class="sd">    -------</span>
+<span class="sd">    bumpmap: DataArray</span>
+
+<span class="sd">    Notes:</span>
+<span class="sd">    ------</span>
+<span class="sd">    Algorithm References:</span>
+<span class="sd">    - numba-ized from Paul Panzer example available here:</span>
+<span class="sd">    https://stackoverflow.com/questions/42147776/producing-2d-perlin-noise-with-numpy</span>
+<span class="sd">     - http://www.mountaincartography.org/mt_hood/pdfs/nighbert_bump1.pdf</span>
+
+<span class="sd">    Examples</span>
+<span class="sd">    --------</span>
+<span class="sd">    &gt;&gt;&gt; num_rows, num_cols = 5, 5</span>
+<span class="sd">    &gt;&gt;&gt; perlin = xrspatial.perl(num_rows, num_cols)</span>
+<span class="sd">    Out[]:</span>
+<span class="sd">    &lt;xarray.DataArray (y: 5, x: 5)&gt;</span>
+<span class="sd">    array([[0.38502038, 0.3235394 , 0.13230299, 0.02275815, 0.13502038],</span>
+<span class="sd">        [0.69650136, 0.6169794 , 0.34002832, 0.10065245, 0.10962136],</span>
+<span class="sd">        [1.        , 0.90777853, 0.55206348, 0.16047902, 0.01192   ],</span>
+<span class="sd">        [1.        , 0.92388163, 0.60956174, 0.21797728, 0.        ],</span>
+<span class="sd">        [0.69650136, 0.6604194 , 0.50362745, 0.29227467, 0.15306136]])</span>
+<span class="sd">    Dimensions without coordinates: y, x</span>
+<span class="sd">    Attributes:</span>
+<span class="sd">    res:1</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">linx</span> <span class="o">=</span> <span class="nb">range</span><span class="p">(</span><span class="n">width</span><span class="p">)</span>
+    <span class="n">liny</span> <span class="o">=</span> <span class="nb">range</span><span class="p">(</span><span class="n">height</span><span class="p">)</span>
+    <span class="n">linx</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">linspace</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="n">width</span><span class="p">,</span> <span class="n">endpoint</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
+    <span class="n">liny</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">linspace</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="n">height</span><span class="p">,</span> <span class="n">endpoint</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
+    <span class="n">x</span><span class="p">,</span> <span class="n">y</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">meshgrid</span><span class="p">(</span><span class="n">linx</span><span class="p">,</span> <span class="n">liny</span><span class="p">)</span>
+    <span class="n">data</span> <span class="o">=</span> <span class="n">_perlin</span><span class="p">(</span><span class="n">x</span> <span class="o">*</span> <span class="n">freq</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">y</span> <span class="o">*</span> <span class="n">freq</span><span class="p">[</span><span class="mi">1</span><span class="p">],</span> <span class="n">seed</span><span class="o">=</span><span class="n">seed</span><span class="p">)</span>
+    <span class="n">data</span> <span class="o">=</span> <span class="p">(</span><span class="n">data</span> <span class="o">-</span> <span class="n">np</span><span class="o">.</span><span class="n">min</span><span class="p">(</span><span class="n">data</span><span class="p">))</span><span class="o">/</span><span class="n">np</span><span class="o">.</span><span class="n">ptp</span><span class="p">(</span><span class="n">data</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">DataArray</span><span class="p">(</span><span class="n">data</span><span class="p">,</span> <span class="n">dims</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;y&#39;</span><span class="p">,</span> <span class="s1">&#39;x&#39;</span><span class="p">],</span> <span class="n">attrs</span><span class="o">=</span><span class="nb">dict</span><span class="p">(</span><span class="n">res</span><span class="o">=</span><span class="mi">1</span><span class="p">))</span></div>
+
+
+<span class="nd">@ngjit</span>
+<span class="k">def</span> <span class="nf">_lerp</span><span class="p">(</span><span class="n">a</span><span class="p">,</span> <span class="n">b</span><span class="p">,</span> <span class="n">x</span><span class="p">):</span>
+    <span class="k">return</span> <span class="n">a</span> <span class="o">+</span> <span class="n">x</span> <span class="o">*</span> <span class="p">(</span><span class="n">b</span><span class="o">-</span><span class="n">a</span><span class="p">)</span>
+
+
+<span class="nd">@ngjit</span>
+<span class="k">def</span> <span class="nf">_fade</span><span class="p">(</span><span class="n">t</span><span class="p">):</span>
+    <span class="k">return</span> <span class="mi">6</span> <span class="o">*</span> <span class="n">t</span><span class="o">**</span><span class="mi">5</span> <span class="o">-</span> <span class="mi">15</span> <span class="o">*</span> <span class="n">t</span><span class="o">**</span><span class="mi">4</span> <span class="o">+</span> <span class="mi">10</span> <span class="o">*</span> <span class="n">t</span><span class="o">**</span><span class="mi">3</span>
+
+
+<span class="nd">@ngjit</span>
+<span class="k">def</span> <span class="nf">_gradient</span><span class="p">(</span><span class="n">h</span><span class="p">,</span> <span class="n">x</span><span class="p">,</span> <span class="n">y</span><span class="p">):</span>
+    <span class="n">vectors</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([[</span><span class="mi">0</span><span class="p">,</span><span class="mi">1</span><span class="p">],[</span><span class="mi">0</span><span class="p">,</span><span class="o">-</span><span class="mi">1</span><span class="p">],[</span><span class="mi">1</span><span class="p">,</span><span class="mi">0</span><span class="p">],[</span><span class="o">-</span><span class="mi">1</span><span class="p">,</span><span class="mi">0</span><span class="p">]])</span>
+    <span class="n">dim_</span> <span class="o">=</span> <span class="n">h</span><span class="o">.</span><span class="n">shape</span>
+    <span class="n">out</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">(</span><span class="n">dim_</span><span class="p">)</span>
+    <span class="k">for</span> <span class="n">j</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">dim_</span><span class="p">[</span><span class="mi">1</span><span class="p">]):</span>
+        <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">dim_</span><span class="p">[</span><span class="mi">0</span><span class="p">]):</span>
+            <span class="n">f</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">mod</span><span class="p">(</span><span class="n">h</span><span class="p">[</span><span class="n">i</span><span class="p">,</span><span class="n">j</span><span class="p">],</span> <span class="mi">4</span><span class="p">)</span>
+            <span class="n">g</span> <span class="o">=</span> <span class="n">vectors</span><span class="p">[</span><span class="n">f</span><span class="p">]</span>
+            <span class="n">out</span><span class="p">[</span><span class="n">i</span><span class="p">,</span><span class="n">j</span><span class="p">]</span> <span class="o">=</span> <span class="n">g</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">*</span> <span class="n">x</span><span class="p">[</span><span class="n">i</span><span class="p">,</span><span class="n">j</span><span class="p">]</span> <span class="o">+</span> <span class="n">g</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="o">*</span> <span class="n">y</span><span class="p">[</span><span class="n">i</span><span class="p">,</span><span class="n">j</span><span class="p">]</span>
+    <span class="k">return</span> <span class="n">out</span>
+
+
+<span class="k">def</span> <span class="nf">_perlin</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="n">y</span><span class="p">,</span> <span class="n">seed</span><span class="o">=</span><span class="mi">0</span><span class="p">):</span>
+    <span class="n">np</span><span class="o">.</span><span class="n">random</span><span class="o">.</span><span class="n">seed</span><span class="p">(</span><span class="n">seed</span><span class="p">)</span>
+    <span class="n">p</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">arange</span><span class="p">(</span><span class="mi">2</span><span class="o">**</span><span class="mi">20</span><span class="p">,</span><span class="n">dtype</span><span class="o">=</span><span class="nb">int</span><span class="p">)</span>
+    <span class="n">np</span><span class="o">.</span><span class="n">random</span><span class="o">.</span><span class="n">shuffle</span><span class="p">(</span><span class="n">p</span><span class="p">)</span>
+    <span class="n">p</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">stack</span><span class="p">([</span><span class="n">p</span><span class="p">,</span><span class="n">p</span><span class="p">])</span><span class="o">.</span><span class="n">flatten</span><span class="p">()</span>
+
+    <span class="c1"># coordinates of the top-left</span>
+    <span class="n">xi</span> <span class="o">=</span> <span class="n">x</span><span class="o">.</span><span class="n">astype</span><span class="p">(</span><span class="nb">int</span><span class="p">)</span>
+    <span class="n">yi</span> <span class="o">=</span> <span class="n">y</span><span class="o">.</span><span class="n">astype</span><span class="p">(</span><span class="nb">int</span><span class="p">)</span>
+
+    <span class="c1"># internal coordinates</span>
+    <span class="n">xf</span> <span class="o">=</span> <span class="n">x</span> <span class="o">-</span> <span class="n">xi</span>
+    <span class="n">yf</span> <span class="o">=</span> <span class="n">y</span> <span class="o">-</span> <span class="n">yi</span>
+
+    <span class="c1"># fade factors</span>
+    <span class="n">u</span> <span class="o">=</span> <span class="n">_fade</span><span class="p">(</span><span class="n">xf</span><span class="p">)</span>
+    <span class="n">v</span> <span class="o">=</span> <span class="n">_fade</span><span class="p">(</span><span class="n">yf</span><span class="p">)</span>
+
+    <span class="c1"># noise components</span>
+    <span class="n">n00</span> <span class="o">=</span> <span class="n">_gradient</span><span class="p">(</span><span class="n">p</span><span class="p">[</span><span class="n">p</span><span class="p">[</span><span class="n">xi</span><span class="p">]</span><span class="o">+</span><span class="n">yi</span><span class="p">],</span> <span class="n">xf</span><span class="p">,</span> <span class="n">yf</span><span class="p">)</span>
+    <span class="n">n01</span> <span class="o">=</span> <span class="n">_gradient</span><span class="p">(</span><span class="n">p</span><span class="p">[</span><span class="n">p</span><span class="p">[</span><span class="n">xi</span><span class="p">]</span><span class="o">+</span><span class="n">yi</span><span class="o">+</span><span class="mi">1</span><span class="p">],</span> <span class="n">xf</span><span class="p">,</span> <span class="n">yf</span><span class="o">-</span><span class="mi">1</span><span class="p">)</span>
+    <span class="n">n11</span> <span class="o">=</span> <span class="n">_gradient</span><span class="p">(</span><span class="n">p</span><span class="p">[</span><span class="n">p</span><span class="p">[</span><span class="n">xi</span><span class="o">+</span><span class="mi">1</span><span class="p">]</span><span class="o">+</span><span class="n">yi</span><span class="o">+</span><span class="mi">1</span><span class="p">],</span> <span class="n">xf</span><span class="o">-</span><span class="mi">1</span><span class="p">,</span> <span class="n">yf</span><span class="o">-</span><span class="mi">1</span><span class="p">)</span>
+    <span class="n">n10</span> <span class="o">=</span> <span class="n">_gradient</span><span class="p">(</span><span class="n">p</span><span class="p">[</span><span class="n">p</span><span class="p">[</span><span class="n">xi</span><span class="o">+</span><span class="mi">1</span><span class="p">]</span><span class="o">+</span><span class="n">yi</span><span class="p">],</span> <span class="n">xf</span><span class="o">-</span><span class="mi">1</span><span class="p">,</span> <span class="n">yf</span><span class="p">)</span>
+
+    <span class="c1"># combine noises</span>
+    <span class="n">x1</span> <span class="o">=</span> <span class="n">_lerp</span><span class="p">(</span><span class="n">n00</span><span class="p">,</span> <span class="n">n10</span><span class="p">,</span> <span class="n">u</span><span class="p">)</span>
+    <span class="n">x2</span> <span class="o">=</span> <span class="n">_lerp</span><span class="p">(</span><span class="n">n01</span><span class="p">,</span> <span class="n">n11</span><span class="p">,</span> <span class="n">u</span><span class="p">)</span>
+    <span class="n">a</span> <span class="o">=</span> <span class="n">_lerp</span><span class="p">(</span><span class="n">x1</span><span class="p">,</span> <span class="n">x2</span><span class="p">,</span> <span class="n">v</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">a</span>
+</pre></div>
+
+           </div>
+           
+          </div>
+          <footer>
+  
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>
+        &copy; Copyright 2020, Brendan Collins
+
+    </p>
+  </div>
+  Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a <a href="https://github.com/rtfd/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>. 
+
+</footer>
+
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+  
+
+
+  <script type="text/javascript">
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script>
+
+  
+  
+    
+   
+
+</body>
+</html>

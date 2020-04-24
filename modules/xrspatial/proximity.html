@@ -1,0 +1,590 @@
+
+
+<!DOCTYPE html>
+<!--[if IE 8]><html class="no-js lt-ie9" lang="en" > <![endif]-->
+<!--[if gt IE 8]><!--> <html class="no-js" lang="en" > <!--<![endif]-->
+<head>
+  <meta charset="utf-8">
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  <title>xrspatial.proximity &mdash; Xarray_spatial  documentation</title>
+  
+
+  
+  
+  
+  
+
+  
+  
+  <script type="text/javascript" src="../../assets/js/modernizr.min.js"></script>
+  
+    
+      <script type="text/javascript" id="documentation_options" data-url_root="../../" src="../../assets/documentation_options.js"></script>
+        <script src="../../assets/jquery.js"></script>
+        <script src="../../assets/underscore.js"></script>
+        <script src="../../assets/doctools.js"></script>
+        <script src="../../assets/language_data.js"></script>
+        <script crossorigin="anonymous" integrity="sha256-Ae2Vz/4ePdIu6ZyI/5ZGsYnb+m0JlOmKPjt6XZ9JJkA=" src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.3.4/require.min.js"></script>
+    
+    <script type="text/javascript" src="../../js/theme.js"></script>
+
+    
+
+  
+  <link rel="stylesheet" href="../../assets/css/theme.css" type="text/css" />
+  <link rel="stylesheet" href="../../assets/pygments.css" type="text/css" />
+  <link rel="stylesheet" href="../../assets/css/xarray_theme.css" type="text/css" />
+    <link rel="index" title="Index" href="../../genindex.html" />
+    <link rel="search" title="Search" href="../../search.html" /> 
+</head>
+
+<body class="wy-body-for-nav">
+
+   
+  <div class="wy-grid-for-nav">
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+          
+
+          
+            <a href="../../index.html">
+          
+
+          
+            
+            <img src="../../assets/logo.png" class="logo" alt="Logo"/>
+          
+          </a>
+
+          
+            
+            
+          
+
+          
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+          
+        </div>
+
+        <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+          
+            
+            
+              
+            
+            
+              <ul>
+<li class="toctree-l1"><a class="reference internal" href="../../slope.html">Slope</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../aspect.html">Aspect</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../curvature.html">Curvature</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../hillshade.html">Hillshade</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../normalized.html">Normalized Difference Vegetation Index (NDVI)</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../focal.html">Focal Statistics</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../zonal_statistics.html">Zonal Statistics</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../zonal_cross.html">Zonal Cross Tabulate</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../viewshed.html">Viewshed</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../proximity.html">Proximity</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../bump.html">Bump Mapping</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../perlin.html">Perlin Noise</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../procedural.html">Procedural Terrain Generation</a></li>
+</ul>
+
+            
+          
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" aria-label="top navigation">
+        
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../../index.html">Xarray_spatial</a>
+        
+      </nav>
+
+
+      <div class="wy-nav-content">
+        
+        <div class="rst-content">
+        
+          
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<div role="navigation" aria-label="breadcrumbs navigation">
+
+  <ul class="wy-breadcrumbs">
+    
+      <li><a href="../../index.html">Docs</a> &raquo;</li>
+        
+          <li><a href="../index.html">Module code</a> &raquo;</li>
+        
+      <li>xrspatial.proximity</li>
+    
+    
+      <li class="wy-breadcrumbs-aside">
+        
+      </li>
+    
+  </ul>
+
+  
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+            
+  <h1>Source code for xrspatial.proximity</h1><div class="highlight"><pre>
+<span></span><span class="kn">import</span> <span class="nn">xarray</span>
+<span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
+<span class="kn">from</span> <span class="nn">numba</span> <span class="kn">import</span> <span class="n">njit</span><span class="p">,</span> <span class="n">prange</span>
+<span class="kn">from</span> <span class="nn">math</span> <span class="kn">import</span> <span class="n">sqrt</span>
+
+<span class="n">EUCLIDEAN</span> <span class="o">=</span> <span class="mi">0</span>
+<span class="n">GREAT_CIRCLE</span> <span class="o">=</span> <span class="mi">1</span>
+<span class="n">MANHATTAN</span> <span class="o">=</span> <span class="mi">2</span>
+<span class="n">NAN</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">nan</span>
+
+
+<span class="k">def</span> <span class="nf">_distance_metric_mapping</span><span class="p">():</span>
+
+    <span class="n">DISTANCE_METRICS</span> <span class="o">=</span> <span class="p">{}</span>
+    <span class="n">DISTANCE_METRICS</span><span class="p">[</span><span class="s1">&#39;EUCLIDEAN&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">EUCLIDEAN</span>
+    <span class="n">DISTANCE_METRICS</span><span class="p">[</span><span class="s1">&#39;GREAT_CIRCLE&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">GREAT_CIRCLE</span>
+    <span class="n">DISTANCE_METRICS</span><span class="p">[</span><span class="s1">&#39;MANHATTAN&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">MANHATTAN</span>
+
+    <span class="k">return</span> <span class="n">DISTANCE_METRICS</span>
+
+<span class="c1"># create dictionary to map distance metric presented by string and the</span>
+<span class="c1"># corresponding metric presented by integer.</span>
+<span class="n">DISTANCE_METRICS</span> <span class="o">=</span> <span class="n">_distance_metric_mapping</span><span class="p">()</span>
+
+
+<div class="viewcode-block" id="euclidean_distance"><a class="viewcode-back" href="../../proximity.html#xrspatial.proximity.euclidean_distance">[docs]</a><span class="nd">@njit</span><span class="p">(</span><span class="n">nogil</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+<span class="k">def</span> <span class="nf">euclidean_distance</span><span class="p">(</span><span class="n">x1</span><span class="p">,</span> <span class="n">x2</span><span class="p">,</span> <span class="n">y1</span><span class="p">,</span> <span class="n">y2</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Calculate Euclidean distance between (x1, y1) and (x2, y2).</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    x1 : float</span>
+<span class="sd">         x-coordinate of the first point.</span>
+<span class="sd">    x2: float</span>
+<span class="sd">        x-coordinate of the second point.</span>
+<span class="sd">    y1: float</span>
+<span class="sd">        y-coordinate of the first point.</span>
+<span class="sd">    y2: float</span>
+<span class="sd">        y-coordinate of the second point.</span>
+
+<span class="sd">    Returns</span>
+<span class="sd">    -------</span>
+<span class="sd">    distance: float</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="n">x</span> <span class="o">=</span> <span class="n">x1</span> <span class="o">-</span> <span class="n">x2</span>
+    <span class="n">y</span> <span class="o">=</span> <span class="n">y1</span> <span class="o">-</span> <span class="n">y2</span>
+    <span class="k">return</span> <span class="n">np</span><span class="o">.</span><span class="n">sqrt</span><span class="p">(</span><span class="n">x</span> <span class="o">*</span> <span class="n">x</span> <span class="o">+</span> <span class="n">y</span> <span class="o">*</span> <span class="n">y</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="manhattan_distance"><a class="viewcode-back" href="../../proximity.html#xrspatial.proximity.manhattan_distance">[docs]</a><span class="nd">@njit</span><span class="p">(</span><span class="n">nogil</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+<span class="k">def</span> <span class="nf">manhattan_distance</span><span class="p">(</span><span class="n">x1</span><span class="p">,</span> <span class="n">x2</span><span class="p">,</span> <span class="n">y1</span><span class="p">,</span> <span class="n">y2</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Calculate Manhattan distance between (x1, y1) and (x2, y2).</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    x1 : float</span>
+<span class="sd">         x-coordinate of the first point.</span>
+<span class="sd">    x2: float</span>
+<span class="sd">        x-coordinate of the second point.</span>
+<span class="sd">    y1: float</span>
+<span class="sd">        y-coordinate of the first point.</span>
+<span class="sd">    y2: float</span>
+<span class="sd">        y-coordinate of the second point.</span>
+
+<span class="sd">    Returns</span>
+<span class="sd">    -------</span>
+<span class="sd">    distance: float</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="n">x</span> <span class="o">=</span> <span class="n">x1</span> <span class="o">-</span> <span class="n">x2</span>
+    <span class="n">y</span> <span class="o">=</span> <span class="n">y1</span> <span class="o">-</span> <span class="n">y2</span>
+    <span class="k">return</span> <span class="n">x</span> <span class="o">*</span> <span class="n">x</span> <span class="o">+</span> <span class="n">y</span> <span class="o">*</span> <span class="n">y</span></div>
+
+
+<div class="viewcode-block" id="great_circle_distance"><a class="viewcode-back" href="../../proximity.html#xrspatial.proximity.great_circle_distance">[docs]</a><span class="nd">@njit</span><span class="p">(</span><span class="n">nogil</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+<span class="k">def</span> <span class="nf">great_circle_distance</span><span class="p">(</span><span class="n">x1</span><span class="p">,</span> <span class="n">x2</span><span class="p">,</span> <span class="n">y1</span><span class="p">,</span> <span class="n">y2</span><span class="p">,</span> <span class="n">radius</span><span class="o">=</span><span class="mi">6378137</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Calculate great-circle distance between (x1, y1) and (x2, y2), assuming each point is a longitude, latitude pair.</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    x1 : float</span>
+<span class="sd">         x-coordinate (latitude) of the first point.</span>
+<span class="sd">    x2: float</span>
+<span class="sd">        x-coordinate (latitude) of the second point.</span>
+<span class="sd">    y1: float</span>
+<span class="sd">        y-coordinate (longitude) of the first point.</span>
+<span class="sd">    y2: float</span>
+<span class="sd">        y-coordinate (longitude) of the second point.</span>
+
+<span class="sd">    Returns</span>
+<span class="sd">    -------</span>
+<span class="sd">    distance: float</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="k">if</span> <span class="n">x1</span> <span class="o">&gt;</span> <span class="mi">180</span> <span class="ow">or</span> <span class="n">x1</span> <span class="o">&lt;</span> <span class="o">-</span><span class="mi">180</span><span class="p">:</span>
+        <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s1">&#39;Invalid x-coordinate of the first point.&#39;</span>
+                         <span class="s1">&#39;Must be in the range [-180, 180]&#39;</span><span class="p">)</span>
+
+    <span class="k">if</span> <span class="n">x2</span> <span class="o">&gt;</span> <span class="mi">180</span> <span class="ow">or</span> <span class="n">x2</span> <span class="o">&lt;</span> <span class="o">-</span><span class="mi">180</span><span class="p">:</span>
+        <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s1">&#39;Invalid x-coordinate of the second point.&#39;</span>
+                         <span class="s1">&#39;Must be in the range [-180, 180]&#39;</span><span class="p">)</span>
+
+    <span class="k">if</span> <span class="n">y1</span> <span class="o">&gt;</span> <span class="mi">90</span> <span class="ow">or</span> <span class="n">y1</span> <span class="o">&lt;</span> <span class="o">-</span><span class="mi">90</span><span class="p">:</span>
+        <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s1">&#39;Invalid y-coordinate of the first point.&#39;</span>
+                         <span class="s1">&#39;Must be in the range [-90, 90]&#39;</span><span class="p">)</span>
+
+    <span class="k">if</span> <span class="n">y2</span> <span class="o">&gt;</span> <span class="mi">90</span> <span class="ow">or</span> <span class="n">y2</span> <span class="o">&lt;</span> <span class="o">-</span><span class="mi">90</span><span class="p">:</span>
+        <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s1">&#39;Invalid y-coordinate of the second point.&#39;</span>
+                         <span class="s1">&#39;Must be in the range [-90, 90]&#39;</span><span class="p">)</span>
+
+    <span class="n">lon1</span><span class="p">,</span> <span class="n">lat1</span><span class="p">,</span> <span class="n">lon2</span><span class="p">,</span> <span class="n">lat2</span> <span class="o">=</span> <span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">radians</span><span class="p">(</span><span class="n">y1</span><span class="p">),</span> <span class="n">np</span><span class="o">.</span><span class="n">radians</span><span class="p">(</span><span class="n">x1</span><span class="p">),</span>
+                              <span class="n">np</span><span class="o">.</span><span class="n">radians</span><span class="p">(</span><span class="n">y2</span><span class="p">),</span> <span class="n">np</span><span class="o">.</span><span class="n">radians</span><span class="p">(</span><span class="n">x2</span><span class="p">))</span>
+    <span class="n">dlon</span> <span class="o">=</span> <span class="n">lon2</span> <span class="o">-</span> <span class="n">lon1</span>
+    <span class="n">dlat</span> <span class="o">=</span> <span class="n">lat2</span> <span class="o">-</span> <span class="n">lat1</span>
+    <span class="n">a</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">sin</span><span class="p">(</span><span class="n">dlat</span> <span class="o">/</span> <span class="mf">2.0</span><span class="p">)</span> <span class="o">**</span> <span class="mi">2</span> <span class="o">+</span>\
+        <span class="n">np</span><span class="o">.</span><span class="n">cos</span><span class="p">(</span><span class="n">lat1</span><span class="p">)</span> <span class="o">*</span> <span class="n">np</span><span class="o">.</span><span class="n">cos</span><span class="p">(</span><span class="n">lat2</span><span class="p">)</span> <span class="o">*</span> <span class="n">np</span><span class="o">.</span><span class="n">sin</span><span class="p">(</span><span class="n">dlon</span> <span class="o">/</span> <span class="mf">2.0</span><span class="p">)</span> <span class="o">**</span> <span class="mi">2</span>
+
+    <span class="c1"># earth radius: 6378137</span>
+    <span class="k">return</span> <span class="n">radius</span> <span class="o">*</span> <span class="mi">2</span> <span class="o">*</span> <span class="n">np</span><span class="o">.</span><span class="n">arcsin</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">sqrt</span><span class="p">(</span><span class="n">a</span><span class="p">))</span></div>
+
+
+<span class="nd">@njit</span><span class="p">(</span><span class="n">nogil</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+<span class="k">def</span> <span class="nf">_distance</span><span class="p">(</span><span class="n">x1</span><span class="p">,</span> <span class="n">x2</span><span class="p">,</span> <span class="n">y1</span><span class="p">,</span> <span class="n">y2</span><span class="p">,</span> <span class="n">metric</span><span class="p">):</span>
+
+    <span class="k">if</span> <span class="n">metric</span> <span class="o">==</span> <span class="n">EUCLIDEAN</span><span class="p">:</span>
+        <span class="k">return</span> <span class="n">euclidean_distance</span><span class="p">(</span><span class="n">x1</span><span class="p">,</span> <span class="n">x2</span><span class="p">,</span> <span class="n">y1</span><span class="p">,</span> <span class="n">y2</span><span class="p">)</span>
+
+    <span class="k">if</span> <span class="n">metric</span> <span class="o">==</span> <span class="n">GREAT_CIRCLE</span><span class="p">:</span>
+        <span class="k">return</span> <span class="n">great_circle_distance</span><span class="p">(</span><span class="n">x1</span><span class="p">,</span> <span class="n">x2</span><span class="p">,</span> <span class="n">y1</span><span class="p">,</span> <span class="n">y2</span><span class="p">)</span>
+
+    <span class="k">if</span> <span class="n">metric</span> <span class="o">==</span> <span class="n">MANHATTAN</span><span class="p">:</span>
+        <span class="k">return</span> <span class="n">manhattan_distance</span><span class="p">(</span><span class="n">x1</span><span class="p">,</span> <span class="n">x2</span><span class="p">,</span> <span class="n">y1</span><span class="p">,</span> <span class="n">y2</span><span class="p">)</span>
+
+    <span class="k">return</span> <span class="o">-</span><span class="mf">1.0</span>
+
+
+<span class="nd">@njit</span><span class="p">(</span><span class="n">nogil</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+<span class="k">def</span> <span class="nf">_process_proximity_line</span><span class="p">(</span><span class="n">source_line</span><span class="p">,</span> <span class="n">x_coords</span><span class="p">,</span> <span class="n">y_coords</span><span class="p">,</span>
+                            <span class="n">pan_near_x</span><span class="p">,</span> <span class="n">pan_near_y</span><span class="p">,</span> <span class="n">is_forward</span><span class="p">,</span>
+                            <span class="n">line_id</span><span class="p">,</span> <span class="n">width</span><span class="p">,</span> <span class="n">max_distance</span><span class="p">,</span> <span class="n">line_proximity</span><span class="p">,</span>
+                            <span class="n">values</span><span class="p">,</span> <span class="n">distance_metric</span><span class="p">):</span>
+
+    <span class="c1"># Process proximity for a line of pixels in an image</span>
+    <span class="c1">#</span>
+    <span class="c1"># source_line: 1d ndarray, input data</span>
+    <span class="c1"># pan_near_x:  1d ndarray</span>
+    <span class="c1"># pan_near_y:  1d ndarray</span>
+    <span class="c1"># is_forward: boolean, will we loop forward through pixel?</span>
+    <span class="c1"># line_id: np.int64, index of the source_line in the image</span>
+    <span class="c1"># width: np.int64, image width. It is the number of pixels in the</span>
+    <span class="c1">#                source_line</span>
+    <span class="c1"># max_distance: np.float64, maximum distance considered.</span>
+    <span class="c1"># line_proximity: 1d numpy array of type np.float64,</span>
+    <span class="c1">#                         calculated proximity from source_line</span>
+    <span class="c1"># values: 1d numpy array of type np.uint8,</span>
+    <span class="c1">#                 A list of target pixel values to measure the distance from.</span>
+    <span class="c1">#                 If this option is not provided proximity will be computed</span>
+    <span class="c1">#                 from non-zero pixel values.</span>
+    <span class="c1">#                 Currently pixel values are internally processed as integers</span>
+    <span class="c1"># Return: 1d numpy array of type np.float64.</span>
+    <span class="c1">#          Corresponding proximity of source_line.</span>
+
+    <span class="n">start</span> <span class="o">=</span> <span class="n">width</span> <span class="o">-</span> <span class="mi">1</span>
+    <span class="n">end</span> <span class="o">=</span> <span class="o">-</span><span class="mi">1</span>
+    <span class="n">step</span> <span class="o">=</span> <span class="o">-</span><span class="mi">1</span>
+    <span class="k">if</span> <span class="n">is_forward</span><span class="p">:</span>
+        <span class="n">start</span> <span class="o">=</span> <span class="mi">0</span>
+        <span class="n">end</span> <span class="o">=</span> <span class="n">width</span>
+        <span class="n">step</span> <span class="o">=</span> <span class="mi">1</span>
+
+    <span class="n">n_values</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">values</span><span class="p">)</span>
+    <span class="k">for</span> <span class="n">pixel</span> <span class="ow">in</span> <span class="n">prange</span><span class="p">(</span><span class="n">start</span><span class="p">,</span> <span class="n">end</span><span class="p">,</span> <span class="n">step</span><span class="p">):</span>
+        <span class="n">is_target</span> <span class="o">=</span> <span class="kc">False</span>
+        <span class="c1"># Is the current pixel a target pixel?</span>
+        <span class="k">if</span> <span class="n">n_values</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+            <span class="n">is_target</span> <span class="o">=</span> <span class="n">source_line</span><span class="p">[</span><span class="n">pixel</span><span class="p">]</span> <span class="o">!=</span> <span class="mi">0</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="n">prange</span><span class="p">(</span><span class="n">n_values</span><span class="p">):</span>
+                <span class="k">if</span> <span class="n">source_line</span><span class="p">[</span><span class="n">pixel</span><span class="p">]</span> <span class="o">==</span> <span class="n">values</span><span class="p">[</span><span class="n">i</span><span class="p">]:</span>
+                    <span class="n">is_target</span> <span class="o">=</span> <span class="kc">True</span>
+
+        <span class="k">if</span> <span class="n">is_target</span><span class="p">:</span>
+            <span class="n">line_proximity</span><span class="p">[</span><span class="n">pixel</span><span class="p">]</span> <span class="o">=</span> <span class="mf">0.0</span>
+            <span class="n">pan_near_x</span><span class="p">[</span><span class="n">pixel</span><span class="p">]</span> <span class="o">=</span> <span class="n">pixel</span>
+            <span class="n">pan_near_y</span><span class="p">[</span><span class="n">pixel</span><span class="p">]</span> <span class="o">=</span> <span class="n">line_id</span>
+            <span class="k">continue</span>
+
+        <span class="c1"># Are we near(er) to the closest target to the above (below) pixel?</span>
+        <span class="n">near_distance_square</span> <span class="o">=</span> <span class="n">max_distance</span> <span class="o">**</span> <span class="mi">2</span> <span class="o">*</span> <span class="mf">2.0</span>
+        <span class="k">if</span> <span class="n">pan_near_x</span><span class="p">[</span><span class="n">pixel</span><span class="p">]</span> <span class="o">!=</span> <span class="o">-</span><span class="mi">1</span><span class="p">:</span>
+            <span class="c1"># distance_square</span>
+            <span class="n">dist_sqr</span> <span class="o">=</span> <span class="n">_distance</span><span class="p">(</span><span class="n">x_coords</span><span class="p">[</span><span class="n">pan_near_x</span><span class="p">[</span><span class="n">pixel</span><span class="p">]],</span> <span class="n">x_coords</span><span class="p">[</span><span class="n">pixel</span><span class="p">],</span>
+                                 <span class="n">y_coords</span><span class="p">[</span><span class="n">pan_near_y</span><span class="p">[</span><span class="n">pixel</span><span class="p">]],</span> <span class="n">y_coords</span><span class="p">[</span><span class="n">line_id</span><span class="p">],</span>
+                                 <span class="n">distance_metric</span><span class="p">)</span>
+            <span class="k">if</span> <span class="n">dist_sqr</span> <span class="o">&lt;</span> <span class="n">near_distance_square</span><span class="p">:</span>
+                <span class="n">near_distance_square</span> <span class="o">=</span> <span class="n">dist_sqr</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="n">pan_near_x</span><span class="p">[</span><span class="n">pixel</span><span class="p">]</span> <span class="o">=</span> <span class="o">-</span><span class="mi">1</span>
+                <span class="n">pan_near_y</span><span class="p">[</span><span class="n">pixel</span><span class="p">]</span> <span class="o">=</span> <span class="o">-</span><span class="mi">1</span>
+
+        <span class="c1"># Are we near(er) to the closest target to the left (right) pixel?</span>
+        <span class="n">last</span> <span class="o">=</span> <span class="n">pixel</span> <span class="o">-</span> <span class="n">step</span>
+        <span class="k">if</span> <span class="n">pixel</span> <span class="o">!=</span> <span class="n">start</span> <span class="ow">and</span> <span class="n">pan_near_x</span><span class="p">[</span><span class="n">last</span><span class="p">]</span> <span class="o">!=</span> <span class="o">-</span><span class="mi">1</span><span class="p">:</span>
+            <span class="n">dist_sqr</span> <span class="o">=</span> <span class="n">_distance</span><span class="p">(</span><span class="n">x_coords</span><span class="p">[</span><span class="n">pan_near_x</span><span class="p">[</span><span class="n">last</span><span class="p">]],</span> <span class="n">x_coords</span><span class="p">[</span><span class="n">pixel</span><span class="p">],</span>
+                                 <span class="n">y_coords</span><span class="p">[</span><span class="n">pan_near_y</span><span class="p">[</span><span class="n">last</span><span class="p">]],</span> <span class="n">y_coords</span><span class="p">[</span><span class="n">line_id</span><span class="p">],</span>
+                                 <span class="n">distance_metric</span><span class="p">)</span>
+            <span class="k">if</span> <span class="n">dist_sqr</span> <span class="o">&lt;</span> <span class="n">near_distance_square</span><span class="p">:</span>
+                <span class="n">near_distance_square</span> <span class="o">=</span> <span class="n">dist_sqr</span>
+                <span class="n">pan_near_x</span><span class="p">[</span><span class="n">pixel</span><span class="p">]</span> <span class="o">=</span> <span class="n">pan_near_x</span><span class="p">[</span><span class="n">last</span><span class="p">]</span>
+                <span class="n">pan_near_y</span><span class="p">[</span><span class="n">pixel</span><span class="p">]</span> <span class="o">=</span> <span class="n">pan_near_y</span><span class="p">[</span><span class="n">last</span><span class="p">]</span>
+
+        <span class="c1">#  Are we near(er) to the closest target to the</span>
+        <span class="c1">#  topright (bottom left) pixel?</span>
+        <span class="n">tr</span> <span class="o">=</span> <span class="n">pixel</span> <span class="o">+</span> <span class="n">step</span>
+        <span class="k">if</span> <span class="n">tr</span> <span class="o">!=</span> <span class="n">end</span> <span class="ow">and</span> <span class="n">pan_near_x</span><span class="p">[</span><span class="n">tr</span><span class="p">]</span> <span class="o">!=</span> <span class="o">-</span><span class="mi">1</span><span class="p">:</span>
+            <span class="n">dist_sqr</span> <span class="o">=</span> <span class="n">_distance</span><span class="p">(</span><span class="n">x_coords</span><span class="p">[</span><span class="n">pan_near_x</span><span class="p">[</span><span class="n">tr</span><span class="p">]],</span> <span class="n">x_coords</span><span class="p">[</span><span class="n">pixel</span><span class="p">],</span>
+                                 <span class="n">y_coords</span><span class="p">[</span><span class="n">pan_near_y</span><span class="p">[</span><span class="n">tr</span><span class="p">]],</span> <span class="n">y_coords</span><span class="p">[</span><span class="n">line_id</span><span class="p">],</span>
+                                 <span class="n">distance_metric</span><span class="p">)</span>
+            <span class="k">if</span> <span class="n">dist_sqr</span> <span class="o">&lt;</span> <span class="n">near_distance_square</span><span class="p">:</span>
+                <span class="n">near_distance_square</span> <span class="o">=</span> <span class="n">dist_sqr</span>
+                <span class="n">pan_near_x</span><span class="p">[</span><span class="n">pixel</span><span class="p">]</span> <span class="o">=</span> <span class="n">pan_near_x</span><span class="p">[</span><span class="n">tr</span><span class="p">]</span>
+                <span class="n">pan_near_y</span><span class="p">[</span><span class="n">pixel</span><span class="p">]</span> <span class="o">=</span> <span class="n">pan_near_y</span><span class="p">[</span><span class="n">tr</span><span class="p">]</span>
+
+        <span class="c1"># Update our proximity value.</span>
+        <span class="k">if</span> <span class="n">pan_near_x</span><span class="p">[</span><span class="n">pixel</span><span class="p">]</span> <span class="o">!=</span> <span class="o">-</span><span class="mi">1</span> <span class="ow">and</span> <span class="ow">not</span> <span class="n">np</span><span class="o">.</span><span class="n">isnan</span><span class="p">(</span><span class="n">source_line</span><span class="p">[</span><span class="n">pixel</span><span class="p">])</span>\
+                <span class="ow">and</span> <span class="n">max_distance</span> <span class="o">*</span> <span class="n">max_distance</span> <span class="o">&gt;=</span> <span class="n">near_distance_square</span>\
+                <span class="ow">and</span> <span class="p">(</span><span class="n">line_proximity</span><span class="p">[</span><span class="n">pixel</span><span class="p">]</span> <span class="o">&lt;</span> <span class="mi">0</span> <span class="ow">or</span>
+                     <span class="n">near_distance_square</span> <span class="o">&lt;</span>
+                     <span class="n">line_proximity</span><span class="p">[</span><span class="n">pixel</span><span class="p">]</span> <span class="o">*</span> <span class="n">line_proximity</span><span class="p">[</span><span class="n">pixel</span><span class="p">]):</span>
+            <span class="n">line_proximity</span><span class="p">[</span><span class="n">pixel</span><span class="p">]</span> <span class="o">=</span> <span class="n">sqrt</span><span class="p">(</span><span class="n">near_distance_square</span><span class="p">)</span>
+    <span class="k">return</span>
+
+
+<span class="nd">@njit</span><span class="p">(</span><span class="n">nogil</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+<span class="k">def</span> <span class="nf">_proximity</span><span class="p">(</span><span class="n">img</span><span class="p">,</span> <span class="n">x_coords</span><span class="p">,</span> <span class="n">y_coords</span><span class="p">,</span> <span class="n">target_values</span><span class="p">,</span> <span class="n">distance_metric</span><span class="p">):</span>
+
+    <span class="n">height</span><span class="p">,</span> <span class="n">width</span> <span class="o">=</span> <span class="n">img</span><span class="o">.</span><span class="n">shape</span>
+
+    <span class="n">max_distance</span> <span class="o">=</span> <span class="n">x_coords</span><span class="p">[</span><span class="n">width</span> <span class="o">-</span> <span class="mi">1</span><span class="p">]</span> <span class="o">+</span> <span class="n">y_coords</span><span class="p">[</span><span class="n">height</span> <span class="o">-</span> <span class="mi">1</span><span class="p">]</span>
+
+    <span class="n">pan_near_x</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">(</span><span class="n">width</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">int64</span><span class="p">)</span>
+    <span class="n">pan_near_y</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">(</span><span class="n">width</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">int64</span><span class="p">)</span>
+
+    <span class="c1"># output of the function</span>
+    <span class="n">img_proximity</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">(</span><span class="n">shape</span><span class="o">=</span><span class="p">(</span><span class="n">height</span><span class="p">,</span> <span class="n">width</span><span class="p">),</span> <span class="n">dtype</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">float64</span><span class="p">)</span>
+
+    <span class="c1"># Loop from top to bottom of the image.</span>
+    <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="n">prange</span><span class="p">(</span><span class="n">width</span><span class="p">):</span>
+        <span class="n">pan_near_x</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="o">=</span> <span class="o">-</span><span class="mi">1</span>
+        <span class="n">pan_near_y</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="o">=</span> <span class="o">-</span><span class="mi">1</span>
+
+    <span class="n">scan_line</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">(</span><span class="n">width</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="n">img</span><span class="o">.</span><span class="n">dtype</span><span class="p">)</span>
+
+    <span class="k">for</span> <span class="n">line</span> <span class="ow">in</span> <span class="n">prange</span><span class="p">(</span><span class="n">height</span><span class="p">):</span>
+        <span class="c1"># Read for target values.</span>
+        <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="n">prange</span><span class="p">(</span><span class="n">width</span><span class="p">):</span>
+            <span class="n">scan_line</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="o">=</span> <span class="n">img</span><span class="p">[</span><span class="n">line</span><span class="p">][</span><span class="n">i</span><span class="p">]</span>
+
+        <span class="n">line_proximity</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">(</span><span class="n">width</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">float64</span><span class="p">)</span>
+        <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="n">prange</span><span class="p">(</span><span class="n">width</span><span class="p">):</span>
+            <span class="n">line_proximity</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="o">=</span> <span class="o">-</span><span class="mf">1.0</span>
+
+        <span class="c1"># left to right</span>
+        <span class="n">_process_proximity_line</span><span class="p">(</span><span class="n">scan_line</span><span class="p">,</span> <span class="n">x_coords</span><span class="p">,</span> <span class="n">y_coords</span><span class="p">,</span>
+                                <span class="n">pan_near_x</span><span class="p">,</span> <span class="n">pan_near_y</span><span class="p">,</span> <span class="kc">True</span><span class="p">,</span> <span class="n">line</span><span class="p">,</span>
+                                <span class="n">width</span><span class="p">,</span> <span class="n">max_distance</span><span class="p">,</span> <span class="n">line_proximity</span><span class="p">,</span>
+                                <span class="n">target_values</span><span class="p">,</span> <span class="n">distance_metric</span><span class="p">)</span>
+
+        <span class="c1"># right to left</span>
+        <span class="n">_process_proximity_line</span><span class="p">(</span><span class="n">scan_line</span><span class="p">,</span> <span class="n">x_coords</span><span class="p">,</span> <span class="n">y_coords</span><span class="p">,</span>
+                                <span class="n">pan_near_x</span><span class="p">,</span> <span class="n">pan_near_y</span><span class="p">,</span> <span class="kc">False</span><span class="p">,</span> <span class="n">line</span><span class="p">,</span>
+                                <span class="n">width</span><span class="p">,</span> <span class="n">max_distance</span><span class="p">,</span> <span class="n">line_proximity</span><span class="p">,</span>
+                                <span class="n">target_values</span><span class="p">,</span> <span class="n">distance_metric</span><span class="p">)</span>
+
+        <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="n">prange</span><span class="p">(</span><span class="n">width</span><span class="p">):</span>
+            <span class="n">img_proximity</span><span class="p">[</span><span class="n">line</span><span class="p">][</span><span class="n">i</span><span class="p">]</span> <span class="o">=</span> <span class="n">line_proximity</span><span class="p">[</span><span class="n">i</span><span class="p">]</span>
+
+    <span class="c1"># Loop from bottom to top of the image.</span>
+    <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="n">prange</span><span class="p">(</span><span class="n">width</span><span class="p">):</span>
+        <span class="n">pan_near_x</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="o">=</span> <span class="o">-</span><span class="mi">1</span>
+        <span class="n">pan_near_y</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="o">=</span> <span class="o">-</span><span class="mi">1</span>
+
+    <span class="k">for</span> <span class="n">line</span> <span class="ow">in</span> <span class="n">prange</span><span class="p">(</span><span class="n">height</span><span class="o">-</span><span class="mi">1</span><span class="p">,</span> <span class="o">-</span><span class="mi">1</span><span class="p">,</span> <span class="o">-</span><span class="mi">1</span><span class="p">):</span>
+        <span class="c1"># Read first pass proximity.</span>
+        <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="n">prange</span><span class="p">(</span><span class="n">width</span><span class="p">):</span>
+            <span class="n">line_proximity</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="o">=</span> <span class="n">img_proximity</span><span class="p">[</span><span class="n">line</span><span class="p">][</span><span class="n">i</span><span class="p">]</span>
+
+        <span class="c1"># Read pixel target_values.</span>
+        <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="n">prange</span><span class="p">(</span><span class="n">width</span><span class="p">):</span>
+            <span class="n">scan_line</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="o">=</span> <span class="n">img</span><span class="p">[</span><span class="n">line</span><span class="p">][</span><span class="n">i</span><span class="p">]</span>
+
+        <span class="c1"># Right to left</span>
+        <span class="n">_process_proximity_line</span><span class="p">(</span><span class="n">scan_line</span><span class="p">,</span> <span class="n">x_coords</span><span class="p">,</span> <span class="n">y_coords</span><span class="p">,</span>
+                                <span class="n">pan_near_x</span><span class="p">,</span> <span class="n">pan_near_y</span><span class="p">,</span> <span class="kc">False</span><span class="p">,</span> <span class="n">line</span><span class="p">,</span>
+                                <span class="n">width</span><span class="p">,</span> <span class="n">max_distance</span><span class="p">,</span> <span class="n">line_proximity</span><span class="p">,</span>
+                                <span class="n">target_values</span><span class="p">,</span> <span class="n">distance_metric</span><span class="p">)</span>
+
+        <span class="c1"># Left to right</span>
+        <span class="n">_process_proximity_line</span><span class="p">(</span><span class="n">scan_line</span><span class="p">,</span> <span class="n">x_coords</span><span class="p">,</span> <span class="n">y_coords</span><span class="p">,</span>
+                                <span class="n">pan_near_x</span><span class="p">,</span> <span class="n">pan_near_y</span><span class="p">,</span> <span class="kc">True</span><span class="p">,</span> <span class="n">line</span><span class="p">,</span>
+                                <span class="n">width</span><span class="p">,</span> <span class="n">max_distance</span><span class="p">,</span> <span class="n">line_proximity</span><span class="p">,</span>
+                                <span class="n">target_values</span><span class="p">,</span> <span class="n">distance_metric</span><span class="p">)</span>
+
+        <span class="c1"># final post processing of distances</span>
+        <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="n">prange</span><span class="p">(</span><span class="n">width</span><span class="p">):</span>
+            <span class="k">if</span> <span class="n">line_proximity</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="o">&lt;</span> <span class="mi">0</span> <span class="ow">or</span> <span class="n">np</span><span class="o">.</span><span class="n">isnan</span><span class="p">(</span><span class="n">scan_line</span><span class="p">[</span><span class="n">i</span><span class="p">]):</span>
+                <span class="c1"># this corresponds the the nan value of input raster.</span>
+                <span class="n">line_proximity</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">nan</span>
+
+        <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="n">prange</span><span class="p">(</span><span class="n">width</span><span class="p">):</span>
+            <span class="n">img_proximity</span><span class="p">[</span><span class="n">line</span><span class="p">][</span><span class="n">i</span><span class="p">]</span> <span class="o">=</span> <span class="n">line_proximity</span><span class="p">[</span><span class="n">i</span><span class="p">]</span>
+    <span class="k">return</span> <span class="n">img_proximity</span>
+
+
+<span class="c1"># ported from</span>
+<span class="c1"># https://github.com/OSGeo/gdal/blob/master/gdal/alg/gdalproximity.cpp</span>
+<div class="viewcode-block" id="proximity"><a class="viewcode-back" href="../../proximity.html#xrspatial.proximity.proximity">[docs]</a><span class="k">def</span> <span class="nf">proximity</span><span class="p">(</span><span class="n">raster</span><span class="p">,</span> <span class="n">target_values</span><span class="o">=</span><span class="p">[],</span> <span class="n">distance_metric</span><span class="o">=</span><span class="s1">&#39;EUCLIDEAN&#39;</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Compute the proximity of all pixels in the image to a set of pixels in</span>
+<span class="sd">    the source image.</span>
+
+<span class="sd">    This function attempts to compute the proximity of all pixels in the</span>
+<span class="sd">    image to a set of pixels in the source image. The following options are</span>
+<span class="sd">    used to define the behavior of the function. By default all non-zero pixels</span>
+<span class="sd">    in ``raster.values`` will be considered the &quot;target&quot;, and all proximities</span>
+<span class="sd">    will be computed in pixels.  Note that target pixels are set to the value</span>
+<span class="sd">    corresponding to a distance of zero.</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    raster: xarray.DataArray</span>
+<span class="sd">        Input raster image with shape=(height, width)</span>
+<span class="sd">    target_values: list</span>
+<span class="sd">        Target pixel values to measure the distance from.  If this option is</span>
+<span class="sd">        not provided, proximity will be computed from non-zero pixel values.</span>
+<span class="sd">        Currently pixel values are internally processed as integers.</span>
+<span class="sd">    distance_metric: string</span>
+<span class="sd">        The metric for calculating distance between 2 points.</span>
+<span class="sd">        Valid distance_metrics include: &#39;EUCLIDEAN&#39;, &#39;GREAT_CIRCLE&#39;, and &#39;MANHATTAN&#39;</span>
+<span class="sd">        Default is &#39;EUCLIDEAN&#39;.</span>
+
+<span class="sd">    Returns</span>
+<span class="sd">    -------</span>
+<span class="sd">    proximity: xarray.DataArray</span>
+<span class="sd">        Proximity image with shape=(height, width)</span>
+
+<span class="sd">    Examples</span>
+<span class="sd">    --------</span>
+<span class="sd">    &gt;&gt;&gt; raster=np.array([[1, 1, 0, 2],[0, 2, 1, 2]])</span>
+<span class="sd">    &gt;&gt;&gt; temp_raster = xarray.DataArray(raster, dims=[&#39;y&#39;, &#39;x&#39;])</span>
+<span class="sd">    &gt;&gt;&gt; xrspatial.proximity(temp_raster)</span>
+<span class="sd">    Out[]:</span>
+<span class="sd">       &lt;xarray.DataArray (y: 2, x: 4)&gt;</span>
+<span class="sd">       array([[0., 0., 1., 0.],[1., 0., 0., 0.]])</span>
+<span class="sd">    Dimensions without coordinates: y, x    1</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="n">raster_dims</span> <span class="o">=</span> <span class="n">raster</span><span class="o">.</span><span class="n">dims</span>
+    <span class="k">if</span> <span class="n">raster_dims</span> <span class="o">!=</span> <span class="p">(</span><span class="s1">&#39;y&#39;</span><span class="p">,</span> <span class="s1">&#39;x&#39;</span><span class="p">):</span>
+        <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;In function proximity(). &quot;</span>
+                         <span class="s2">&quot;raster.coords should be named as coordinates:&quot;</span>
+                         <span class="s2">&quot;(&#39;y&#39;, &#39;x&#39;)&quot;</span><span class="p">)</span>
+
+    <span class="c1"># convert distance metric from string to integer, the correct type</span>
+    <span class="c1"># of argument for function _distance()</span>
+    <span class="n">distance_metric</span> <span class="o">=</span> <span class="n">DISTANCE_METRICS</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">distance_metric</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span>
+
+    <span class="k">if</span> <span class="n">distance_metric</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="n">distance_metric</span> <span class="o">=</span> <span class="n">DISTANCE_METRICS</span><span class="p">[</span><span class="s1">&#39;EUCLIDEAN&#39;</span><span class="p">]</span>
+
+    <span class="n">target_values</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">asarray</span><span class="p">(</span><span class="n">target_values</span><span class="p">)</span><span class="o">.</span><span class="n">astype</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">uint8</span><span class="p">)</span>
+
+    <span class="n">img</span> <span class="o">=</span> <span class="n">raster</span><span class="o">.</span><span class="n">values</span>
+    <span class="n">y_coords</span> <span class="o">=</span> <span class="n">raster</span><span class="o">.</span><span class="n">coords</span><span class="p">[</span><span class="s1">&#39;y&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">values</span>
+    <span class="n">x_coords</span> <span class="o">=</span> <span class="n">raster</span><span class="o">.</span><span class="n">coords</span><span class="p">[</span><span class="s1">&#39;x&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">values</span>
+
+    <span class="n">proximity_img</span> <span class="o">=</span>  <span class="n">_proximity</span><span class="p">(</span><span class="n">img</span><span class="p">,</span> <span class="n">x_coords</span><span class="p">,</span> <span class="n">y_coords</span><span class="p">,</span> <span class="n">target_values</span><span class="p">,</span>
+                                <span class="n">distance_metric</span><span class="p">)</span>
+
+    <span class="n">result</span> <span class="o">=</span> <span class="n">xarray</span><span class="o">.</span><span class="n">DataArray</span><span class="p">(</span><span class="n">proximity_img</span><span class="p">,</span>
+                              <span class="n">coords</span><span class="o">=</span><span class="n">raster</span><span class="o">.</span><span class="n">coords</span><span class="p">,</span>
+                              <span class="n">dims</span><span class="o">=</span><span class="n">raster</span><span class="o">.</span><span class="n">dims</span><span class="p">,</span>
+                              <span class="n">attrs</span><span class="o">=</span><span class="n">raster</span><span class="o">.</span><span class="n">attrs</span><span class="p">)</span>
+
+    <span class="k">return</span> <span class="n">result</span></div>
+</pre></div>
+
+           </div>
+           
+          </div>
+          <footer>
+  
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>
+        &copy; Copyright 2020, Brendan Collins
+
+    </p>
+  </div>
+  Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a <a href="https://github.com/rtfd/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>. 
+
+</footer>
+
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+  
+
+
+  <script type="text/javascript">
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script>
+
+  
+  
+    
+   
+
+</body>
+</html>

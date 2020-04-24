@@ -1,0 +1,557 @@
+
+
+<!DOCTYPE html>
+<!--[if IE 8]><html class="no-js lt-ie9" lang="en" > <![endif]-->
+<!--[if gt IE 8]><!--> <html class="no-js" lang="en" > <!--<![endif]-->
+<head>
+  <meta charset="utf-8">
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  <title>xrspatial.zonal &mdash; Xarray_spatial  documentation</title>
+  
+
+  
+  
+  
+  
+
+  
+  <script type="text/javascript" src="../../assets/js/modernizr.min.js"></script>
+  
+    
+      <script type="text/javascript" id="documentation_options" data-url_root="../../" src="../../assets/documentation_options.js"></script>
+        <script src="../../assets/jquery.js"></script>
+        <script src="../../assets/underscore.js"></script>
+        <script src="../../assets/doctools.js"></script>
+        <script src="../../assets/language_data.js"></script>
+        <script crossorigin="anonymous" integrity="sha256-Ae2Vz/4ePdIu6ZyI/5ZGsYnb+m0JlOmKPjt6XZ9JJkA=" src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.3.4/require.min.js"></script>
+    
+    <script type="text/javascript" src="../../js/theme.js"></script>
+
+  <link rel="stylesheet" href="../../assets/css/theme.css" type="text/css" />
+  <link rel="stylesheet" href="../../assets/pygments.css" type="text/css" />
+  <link rel="stylesheet" href="../../assets/css/xarray_theme.css" type="text/css" />
+    <link rel="index" title="Index" href="../../genindex.html" />
+    <link rel="search" title="Search" href="../../search.html" /> 
+</head>
+
+<body class="wy-body-for-nav">
+
+   
+  <div class="wy-grid-for-nav">
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+          
+
+          
+            <a href="../../index.html">
+          
+
+          
+            
+            <img src="../../assets/logo.png" class="logo" alt="Logo"/>
+          
+          </a>
+
+          
+            
+            
+          
+
+          
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+          
+        </div>
+
+        <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+          
+            
+            
+              
+            
+            
+              <ul>
+<li class="toctree-l1"><a class="reference internal" href="../../slope.html">Slope</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../aspect.html">Aspect</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../curvature.html">Curvature</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../hillshade.html">Hillshade</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../normalized.html">Normalized Difference Vegetation Index (NDVI)</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../focal.html">Focal Statistics</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../zonal_statistics.html">Zonal Statistics</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../zonal_cross.html">Zonal Cross Tabulate</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../viewshed.html">Viewshed</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../proximity.html">Proximity</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../bump.html">Bump Mapping</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../perlin.html">Perlin Noise</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../procedural.html">Procedural Terrain Generation</a></li>
+</ul>
+
+            
+          
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" aria-label="top navigation">
+        
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../../index.html">Xarray_spatial</a>
+        
+      </nav>
+
+
+      <div class="wy-nav-content">
+        
+        <div class="rst-content">
+        
+          
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<div role="navigation" aria-label="breadcrumbs navigation">
+
+  <ul class="wy-breadcrumbs">
+    
+      <li><a href="../../index.html">Docs</a> &raquo;</li>
+        
+          <li><a href="../index.html">Module code</a> &raquo;</li>
+        
+      <li>xrspatial.zonal</li>
+    
+    
+      <li class="wy-breadcrumbs-aside">
+        
+      </li>
+    
+  </ul>
+
+  
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+            
+  <h1>Source code for xrspatial.zonal</h1><div class="highlight"><pre>
+<span></span><span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
+<span class="kn">import</span> <span class="nn">pandas</span> <span class="k">as</span> <span class="nn">pd</span>
+<span class="kn">import</span> <span class="nn">xarray</span> <span class="k">as</span> <span class="nn">xa</span>
+<span class="kn">import</span> <span class="nn">warnings</span>
+
+<span class="n">warnings</span><span class="o">.</span><span class="n">simplefilter</span><span class="p">(</span><span class="s1">&#39;default&#39;</span><span class="p">)</span>
+
+
+<span class="k">def</span> <span class="nf">zonal_stats</span><span class="p">(</span><span class="n">zones</span><span class="p">,</span> <span class="n">values</span><span class="p">,</span>
+                <span class="n">stat_funcs</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;mean&#39;</span><span class="p">,</span> <span class="s1">&#39;max&#39;</span><span class="p">,</span> <span class="s1">&#39;min&#39;</span><span class="p">,</span> <span class="s1">&#39;std&#39;</span><span class="p">,</span> <span class="s1">&#39;var&#39;</span><span class="p">]):</span>
+    <span class="n">warnings</span><span class="o">.</span><span class="n">warn</span><span class="p">(</span><span class="s1">&#39;</span><span class="se">\&#39;</span><span class="s1">zonal_stats</span><span class="se">\&#39;</span><span class="s1"> is deprecated. Use </span><span class="se">\&#39;</span><span class="s1">stats</span><span class="se">\&#39;</span><span class="s1"> instead&#39;</span><span class="p">,</span>
+                  <span class="ne">DeprecationWarning</span><span class="p">)</span>
+
+    <span class="k">return</span> <span class="n">stats</span><span class="p">(</span><span class="n">zones</span><span class="p">,</span> <span class="n">values</span><span class="p">,</span> <span class="n">stat_funcs</span><span class="p">)</span>
+
+
+<span class="k">def</span> <span class="nf">stats</span><span class="p">(</span><span class="n">zones</span><span class="p">,</span> <span class="n">values</span><span class="p">,</span> <span class="n">stat_funcs</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;mean&#39;</span><span class="p">,</span> <span class="s1">&#39;max&#39;</span><span class="p">,</span> <span class="s1">&#39;min&#39;</span><span class="p">,</span> <span class="s1">&#39;std&#39;</span><span class="p">,</span> <span class="s1">&#39;var&#39;</span><span class="p">]):</span>
+    <span class="sd">&quot;&quot;&quot;Calculate summary statistics for each zone defined by a zone dataset,</span>
+<span class="sd">    based on values aggregate.</span>
+
+<span class="sd">    A single output value is computed for every zone in the input zone dataset.</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    zones: xarray.DataArray,</span>
+<span class="sd">        zones.values is a 2d array of integers.</span>
+<span class="sd">        A zone is all the cells in a raster that have the same value,</span>
+<span class="sd">        whether or not they are contiguous. The input zone layer defines</span>
+<span class="sd">        the shape, values, and locations of the zones. An integer field</span>
+<span class="sd">        in the zone input is specified to define the zones.</span>
+
+<span class="sd">    values: xarray.DataArray,</span>
+<span class="sd">        values.values is a 2d array of integers or floats.</span>
+<span class="sd">        The input value raster contains the input values used in calculating</span>
+<span class="sd">        the output statistic for each zone.</span>
+
+<span class="sd">    stats: list of strings or dictionary&lt;stat_name: function(zone_values)&gt;.</span>
+<span class="sd">        Which statistics to calculate for each zone.</span>
+<span class="sd">        If a list, possible choices are subsets of</span>
+<span class="sd">            [&#39;mean&#39;, &#39;max&#39;, &#39;min&#39;, &#39;std&#39;, &#39;var&#39;]</span>
+<span class="sd">        In the dictionary case, all of its values must be callable.</span>
+<span class="sd">            Function takes only one argument that is the zone values.</span>
+<span class="sd">            The key become the column name in the output DataFrame.</span>
+
+<span class="sd">    Returns</span>
+<span class="sd">    -------</span>
+<span class="sd">    stats_df: pandas.DataFrame</span>
+<span class="sd">        A pandas DataFrame where each column is a statistic</span>
+<span class="sd">        and each row is a zone with zone id.</span>
+
+<span class="sd">    Examples</span>
+<span class="sd">    --------</span>
+<span class="sd">    &gt;&gt;&gt; zones_val = np.array([[1, 1, 0, 2],</span>
+<span class="sd">    &gt;&gt;&gt;                      [0, 2, 1, 2]])</span>
+<span class="sd">    &gt;&gt;&gt; zones = xarray.DataArray(zones_val)</span>
+<span class="sd">    &gt;&gt;&gt; values_val = np.array([[2, -1, 5, 3],</span>
+<span class="sd">    &gt;&gt;&gt;                       [3, np.nan, 20, 10]])</span>
+<span class="sd">    &gt;&gt;&gt; values = xarray.DataArray(values_val)</span>
+
+<span class="sd">    # default setting</span>
+<span class="sd">    &gt;&gt;&gt; df = stats(zones, values)</span>
+<span class="sd">    &gt;&gt;&gt; df</span>
+<span class="sd">        mean	max 	min 	std     	var</span>
+<span class="sd">    1	7.0 	20.0	-1.0	9.273618	86.00</span>
+<span class="sd">    2	6.5	    10.0   	3.0	    3.500000	12.25</span>
+
+<span class="sd">    # custom stat</span>
+<span class="sd">    &gt;&gt;&gt; custom_stats ={&#39;sum&#39;: lambda val: val.sum()}</span>
+<span class="sd">    &gt;&gt;&gt; df = stats(zones, values)</span>
+<span class="sd">    &gt;&gt;&gt; df</span>
+<span class="sd">        sum</span>
+<span class="sd">    1	21.0</span>
+<span class="sd">    2	13.0</span>
+
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="n">zones_val</span> <span class="o">=</span> <span class="n">zones</span><span class="o">.</span><span class="n">values</span>
+    <span class="n">values_val</span> <span class="o">=</span> <span class="n">values</span><span class="o">.</span><span class="n">values</span>
+
+    <span class="k">if</span> <span class="n">zones_val</span><span class="o">.</span><span class="n">shape</span> <span class="o">!=</span> <span class="n">values_val</span><span class="o">.</span><span class="n">shape</span><span class="p">:</span>
+        <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span>
+            <span class="s2">&quot;`zones` and `values` must have same shape&quot;</span><span class="p">)</span>
+
+    <span class="k">if</span> <span class="ow">not</span> <span class="nb">issubclass</span><span class="p">(</span><span class="nb">type</span><span class="p">(</span><span class="n">zones_val</span><span class="p">[</span><span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">]),</span> <span class="n">np</span><span class="o">.</span><span class="n">integer</span><span class="p">):</span>
+        <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;`zones` must be an array of integers&quot;</span><span class="p">)</span>
+
+    <span class="k">if</span> <span class="ow">not</span> <span class="p">(</span><span class="nb">issubclass</span><span class="p">(</span><span class="nb">type</span><span class="p">(</span><span class="n">values_val</span><span class="p">[</span><span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">]),</span> <span class="n">np</span><span class="o">.</span><span class="n">integer</span><span class="p">)</span> <span class="ow">or</span>
+            <span class="nb">issubclass</span><span class="p">(</span><span class="nb">type</span><span class="p">(</span><span class="n">values_val</span><span class="p">[</span><span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">]),</span> <span class="n">np</span><span class="o">.</span><span class="n">float</span><span class="p">)):</span>
+        <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span>
+            <span class="s2">&quot;`values` must be an array of integers or floats&quot;</span><span class="p">)</span>
+
+    <span class="n">unique_zones</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">unique</span><span class="p">(</span><span class="n">zones_val</span><span class="p">)</span><span class="o">.</span><span class="n">astype</span><span class="p">(</span><span class="nb">int</span><span class="p">)</span>
+
+    <span class="n">num_zones</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">unique_zones</span><span class="p">)</span>
+    <span class="c1"># do not consider zone with 0s</span>
+    <span class="k">if</span> <span class="mi">0</span> <span class="ow">in</span> <span class="n">unique_zones</span><span class="p">:</span>
+        <span class="n">num_zones</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">unique_zones</span><span class="p">)</span> <span class="o">-</span> <span class="mi">1</span>
+
+    <span class="c1"># mask out all invalid values_val such as: nan, inf</span>
+    <span class="n">masked_values</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">ma</span><span class="o">.</span><span class="n">masked_invalid</span><span class="p">(</span><span class="n">values_val</span><span class="p">)</span>
+
+    <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">stat_funcs</span><span class="p">,</span> <span class="nb">dict</span><span class="p">):</span>
+        <span class="n">stats_df</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">(</span><span class="n">columns</span><span class="o">=</span><span class="p">[</span><span class="o">*</span><span class="n">stat_funcs</span><span class="p">])</span>
+
+        <span class="k">for</span> <span class="n">zone_id</span> <span class="ow">in</span> <span class="n">unique_zones</span><span class="p">:</span>
+            <span class="c1"># do not consider 0 pixels as a zone</span>
+            <span class="k">if</span> <span class="n">zone_id</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+                <span class="k">continue</span>
+
+            <span class="c1"># get zone values_val</span>
+            <span class="n">zone_values</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">ma</span><span class="o">.</span><span class="n">masked_where</span><span class="p">(</span><span class="n">zones_val</span> <span class="o">!=</span> <span class="n">zone_id</span><span class="p">,</span>
+                                             <span class="n">masked_values</span><span class="p">)</span>
+
+            <span class="n">zone_stats</span> <span class="o">=</span> <span class="p">[]</span>
+            <span class="k">for</span> <span class="n">stat</span> <span class="ow">in</span> <span class="n">stat_funcs</span><span class="p">:</span>
+                <span class="n">stat_func</span> <span class="o">=</span> <span class="n">stat_funcs</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">stat</span><span class="p">)</span>
+                <span class="k">if</span> <span class="ow">not</span> <span class="n">callable</span><span class="p">(</span><span class="n">stat_func</span><span class="p">):</span>
+                    <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="n">stat</span><span class="p">)</span>
+                <span class="n">zone_stats</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">stat_func</span><span class="p">(</span><span class="n">zone_values</span><span class="p">))</span>
+
+            <span class="n">stats_df</span><span class="o">.</span><span class="n">loc</span><span class="p">[</span><span class="n">zone_id</span><span class="p">]</span> <span class="o">=</span> <span class="n">zone_stats</span>
+
+    <span class="k">else</span><span class="p">:</span>
+        <span class="n">stats_df</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">(</span><span class="n">columns</span><span class="o">=</span><span class="n">stat_funcs</span><span class="p">)</span>
+
+        <span class="k">for</span> <span class="n">zone_id</span> <span class="ow">in</span> <span class="n">unique_zones</span><span class="p">:</span>
+            <span class="c1"># do not consider 0 pixels as a zone</span>
+            <span class="k">if</span> <span class="n">zone_id</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+                <span class="k">continue</span>
+
+            <span class="c1"># get zone values_val</span>
+            <span class="n">zone_values</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">ma</span><span class="o">.</span><span class="n">masked_where</span><span class="p">(</span><span class="n">zones_val</span> <span class="o">!=</span> <span class="n">zone_id</span><span class="p">,</span>
+                                             <span class="n">masked_values</span><span class="p">)</span>
+
+            <span class="n">zone_stats</span> <span class="o">=</span> <span class="p">[]</span>
+            <span class="k">for</span> <span class="n">stat</span> <span class="ow">in</span> <span class="n">stat_funcs</span><span class="p">:</span>
+                <span class="k">if</span> <span class="n">stat</span> <span class="o">==</span> <span class="s1">&#39;mean&#39;</span><span class="p">:</span>
+                    <span class="n">zone_stats</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">zone_values</span><span class="o">.</span><span class="n">mean</span><span class="p">())</span>
+                <span class="k">elif</span> <span class="n">stat</span> <span class="o">==</span> <span class="s1">&#39;max&#39;</span><span class="p">:</span>
+                    <span class="n">zone_stats</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">zone_values</span><span class="o">.</span><span class="n">max</span><span class="p">())</span>
+                <span class="k">elif</span> <span class="n">stat</span> <span class="o">==</span> <span class="s1">&#39;min&#39;</span><span class="p">:</span>
+                    <span class="n">zone_stats</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">zone_values</span><span class="o">.</span><span class="n">min</span><span class="p">())</span>
+                <span class="k">elif</span> <span class="n">stat</span> <span class="o">==</span> <span class="s1">&#39;std&#39;</span><span class="p">:</span>
+                    <span class="n">zone_stats</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">zone_values</span><span class="o">.</span><span class="n">std</span><span class="p">())</span>
+                <span class="k">elif</span> <span class="n">stat</span> <span class="o">==</span> <span class="s1">&#39;var&#39;</span><span class="p">:</span>
+                    <span class="n">zone_stats</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">zone_values</span><span class="o">.</span><span class="n">var</span><span class="p">())</span>
+                <span class="k">else</span><span class="p">:</span>
+                    <span class="n">err_str</span> <span class="o">=</span> <span class="s1">&#39;Invalid stat name. &#39;</span> \
+                              <span class="o">+</span> <span class="s1">&#39;</span><span class="se">\&#39;</span><span class="s1">&#39;</span> <span class="o">+</span> <span class="n">stat</span> <span class="o">+</span> <span class="s1">&#39;</span><span class="se">\&#39;</span><span class="s1"> option not supported.&#39;</span>
+                    <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="n">err_str</span><span class="p">)</span>
+
+            <span class="n">stats_df</span><span class="o">.</span><span class="n">loc</span><span class="p">[</span><span class="n">zone_id</span><span class="p">]</span> <span class="o">=</span> <span class="n">zone_stats</span>
+
+    <span class="k">return</span> <span class="n">stats_df</span>
+
+
+<span class="k">def</span> <span class="nf">_crosstab</span><span class="p">(</span><span class="n">zones</span><span class="p">,</span> <span class="n">values</span><span class="p">,</span> <span class="n">layer</span><span class="p">):</span>
+    <span class="n">zones_val</span> <span class="o">=</span> <span class="n">zones</span><span class="o">.</span><span class="n">values</span>
+    <span class="n">values_val</span> <span class="o">=</span> <span class="n">values</span><span class="o">.</span><span class="n">values</span>
+
+    <span class="k">if</span> <span class="n">zones_val</span><span class="o">.</span><span class="n">shape</span> <span class="o">!=</span> <span class="n">values_val</span><span class="o">.</span><span class="n">shape</span><span class="p">[:</span><span class="o">-</span><span class="mi">1</span><span class="p">]:</span>
+        <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span>
+            <span class="s2">&quot;Incompatible shapes between `zones` and `values`&quot;</span><span class="p">)</span>
+
+    <span class="k">if</span> <span class="ow">not</span> <span class="nb">issubclass</span><span class="p">(</span><span class="nb">type</span><span class="p">(</span><span class="n">zones_val</span><span class="p">[</span><span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">]),</span> <span class="n">np</span><span class="o">.</span><span class="n">integer</span><span class="p">):</span>
+        <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;`zones` must be an array of integers&quot;</span><span class="p">)</span>
+
+    <span class="k">if</span> <span class="ow">not</span> <span class="nb">issubclass</span><span class="p">(</span><span class="nb">type</span><span class="p">(</span><span class="n">values_val</span><span class="p">[</span><span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">]),</span> <span class="n">np</span><span class="o">.</span><span class="n">integer</span><span class="p">)</span> <span class="ow">and</span> \
+            <span class="ow">not</span> <span class="nb">issubclass</span><span class="p">(</span><span class="nb">type</span><span class="p">(</span><span class="n">values_val</span><span class="p">[</span><span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">]),</span> <span class="n">np</span><span class="o">.</span><span class="n">float</span><span class="p">):</span>
+        <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span>
+            <span class="s2">&quot;`values` must be an array of integers or floats&quot;</span><span class="p">)</span>
+
+    <span class="k">if</span> <span class="n">layer</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="n">cats</span> <span class="o">=</span> <span class="n">values</span><span class="o">.</span><span class="n">indexes</span><span class="p">[</span><span class="n">values</span><span class="o">.</span><span class="n">dims</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]]</span><span class="o">.</span><span class="n">values</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="k">if</span> <span class="n">layer</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">values</span><span class="o">.</span><span class="n">dims</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;`layer` does not exist in `values` agg.&quot;</span><span class="p">)</span>
+        <span class="n">cats</span> <span class="o">=</span> <span class="n">values</span><span class="p">[</span><span class="n">layer</span><span class="p">]</span><span class="o">.</span><span class="n">values</span>
+
+    <span class="n">num_cats</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">cats</span><span class="p">)</span>
+
+    <span class="n">unique_zones</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">unique</span><span class="p">(</span><span class="n">zones_val</span><span class="p">)</span><span class="o">.</span><span class="n">astype</span><span class="p">(</span><span class="nb">int</span><span class="p">)</span>
+    <span class="n">num_zones</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">unique_zones</span><span class="p">)</span>
+
+    <span class="c1"># do not consider zone with 0s</span>
+    <span class="k">if</span> <span class="mi">0</span> <span class="ow">in</span> <span class="n">unique_zones</span><span class="p">:</span>
+        <span class="n">num_zones</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">unique_zones</span><span class="p">)</span> <span class="o">-</span> <span class="mi">1</span>
+
+    <span class="k">if</span> <span class="n">num_zones</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+        <span class="n">warnings</span><span class="o">.</span><span class="n">warn</span><span class="p">(</span><span class="s2">&quot;No zone in `zones` xarray.&quot;</span><span class="p">)</span>
+
+    <span class="c1"># mask out all invalid values_val such as: nan, inf</span>
+    <span class="n">masked_values</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">ma</span><span class="o">.</span><span class="n">masked_invalid</span><span class="p">(</span><span class="n">values_val</span><span class="p">)</span>
+
+    <span class="c1"># return of the function</span>
+    <span class="c1"># columns are categories</span>
+    <span class="n">crosstab_df</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">(</span><span class="n">columns</span><span class="o">=</span><span class="n">cats</span><span class="p">)</span>
+
+    <span class="k">for</span> <span class="n">zone_id</span> <span class="ow">in</span> <span class="n">unique_zones</span><span class="p">:</span>
+        <span class="c1"># do not consider entries in `zones` with id=0 as a zone</span>
+        <span class="k">if</span> <span class="n">zone_id</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+            <span class="k">continue</span>
+
+        <span class="c1"># get all entries in zones with zone_id</span>
+        <span class="n">zone_entries</span> <span class="o">=</span> <span class="n">zones_val</span> <span class="o">==</span> <span class="n">zone_id</span>
+        <span class="n">zones_entries_3d</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">repeat</span><span class="p">(</span><span class="n">zone_entries</span><span class="p">[:,</span> <span class="p">:,</span> <span class="n">np</span><span class="o">.</span><span class="n">newaxis</span><span class="p">],</span>
+                                     <span class="n">num_cats</span><span class="p">,</span> <span class="n">axis</span><span class="o">=-</span><span class="mi">1</span><span class="p">)</span>
+
+        <span class="n">zone_values</span> <span class="o">=</span> <span class="n">zones_entries_3d</span> <span class="o">*</span> <span class="n">masked_values</span>
+        <span class="n">zone_cat_stats</span> <span class="o">=</span> <span class="p">[</span><span class="n">np</span><span class="o">.</span><span class="n">sum</span><span class="p">(</span><span class="n">zone_cat</span><span class="p">)</span> <span class="k">for</span> <span class="n">zone_cat</span> <span class="ow">in</span> <span class="n">zone_values</span><span class="o">.</span><span class="n">T</span><span class="p">]</span>
+        <span class="n">sum_zone_cats</span> <span class="o">=</span> <span class="nb">sum</span><span class="p">(</span><span class="n">zone_cat_stats</span><span class="p">)</span>
+
+        <span class="c1"># percentage of each category over the zone</span>
+        <span class="n">crosstab_df</span><span class="o">.</span><span class="n">loc</span><span class="p">[</span><span class="n">zone_id</span><span class="p">]</span> <span class="o">=</span> <span class="n">zone_cat_stats</span> <span class="o">/</span> <span class="n">sum_zone_cats</span>
+
+    <span class="k">return</span> <span class="n">crosstab_df</span>
+
+
+<span class="k">def</span> <span class="nf">crosstab</span><span class="p">(</span><span class="n">zones_agg</span><span class="p">,</span> <span class="n">values_agg</span><span class="p">,</span> <span class="n">layer</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Calculate cross-tabulated (categorical stats) areas</span>
+<span class="sd">    between two datasets: a zone dataset, a value dataset (a value raster).</span>
+<span class="sd">    Outputs a pandas DataFrame.</span>
+
+<span class="sd">    Requires a DataArray with a single data dimension, here called the</span>
+<span class="sd">    &quot;values_agg&quot;, indexed using 3D coordinates.</span>
+
+<span class="sd">    DataArrays with 3D coordinates are expected to contain values</span>
+<span class="sd">    distributed over different categories that are indexed by the</span>
+<span class="sd">    additional coordinate.  Such an array would reduce to the</span>
+<span class="sd">    2D-coordinate case if collapsed across the categories (e.g. if one</span>
+<span class="sd">    did ``aggc.sum(dim=&#39;cat&#39;)`` for a categorical dimension ``cat``).</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    zones_agg: xarray.DataArray,</span>
+<span class="sd">        zones.values is a 2d array of integers.</span>
+<span class="sd">        A zone is all the cells in a raster that have the same value,</span>
+<span class="sd">        whether or not they are contiguous. The input zone layer defines</span>
+<span class="sd">        the shape, values, and locations of the zones. An integer field</span>
+<span class="sd">        in the zone input is specified to define the zones.</span>
+
+<span class="sd">    values_agg: xarray.DataArray,</span>
+<span class="sd">        values.values is a 3d array of integers or floats.</span>
+<span class="sd">        The input value raster contains the input values used in calculating</span>
+<span class="sd">        the categorical statistic for each zone.</span>
+
+<span class="sd">    layer: string (optional)</span>
+<span class="sd">        name of the layer inside the `values_agg` DataArray</span>
+<span class="sd">        for getting the values</span>
+<span class="sd">    Returns</span>
+<span class="sd">    -------</span>
+<span class="sd">    crosstab_df: pandas.DataFrame</span>
+<span class="sd">        A pandas DataFrame where each column is a categorical value</span>
+<span class="sd">        and each row is a zone with zone id.</span>
+<span class="sd">        Each entry presents the percentage of the category over the zone.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="k">if</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">zones_agg</span><span class="p">,</span> <span class="n">xa</span><span class="o">.</span><span class="n">DataArray</span><span class="p">):</span>
+        <span class="k">raise</span> <span class="ne">TypeError</span><span class="p">(</span><span class="s2">&quot;zones_agg must be instance of DataArray&quot;</span><span class="p">)</span>
+
+    <span class="k">if</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">values_agg</span><span class="p">,</span> <span class="n">xa</span><span class="o">.</span><span class="n">DataArray</span><span class="p">):</span>
+        <span class="k">raise</span> <span class="ne">TypeError</span><span class="p">(</span><span class="s2">&quot;values_agg must be instance of DataArray&quot;</span><span class="p">)</span>
+
+    <span class="k">if</span> <span class="n">zones_agg</span><span class="o">.</span><span class="n">ndim</span> <span class="o">!=</span> <span class="mi">2</span><span class="p">:</span>
+        <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;zones_agg must be 2D&quot;</span><span class="p">)</span>
+
+    <span class="k">if</span> <span class="n">values_agg</span><span class="o">.</span><span class="n">ndim</span> <span class="o">==</span> <span class="mi">3</span><span class="p">:</span>
+        <span class="k">return</span> <span class="n">_crosstab</span><span class="p">(</span><span class="n">zones_agg</span><span class="p">,</span> <span class="n">values_agg</span><span class="p">,</span> <span class="n">layer</span><span class="p">)</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;values_agg must use 3D coordinates&quot;</span><span class="p">)</span>
+
+
+<span class="k">def</span> <span class="nf">apply</span><span class="p">(</span><span class="n">zones</span><span class="p">,</span> <span class="n">values</span><span class="p">,</span> <span class="n">func</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Apply a function to the `values` agg within zones in `zones` agg.</span>
+<span class="sd">     Change the agg content.</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    zones: xarray.DataArray,</span>
+<span class="sd">        zones.values is a 2d array of integers.</span>
+<span class="sd">        A zone is all the cells in a raster that have the same value,</span>
+<span class="sd">        whether or not they are contiguous. The input zone layer defines</span>
+<span class="sd">        the shape, values, and locations of the zones. An integer field</span>
+<span class="sd">        in the zone input is specified to define the zones.</span>
+<span class="sd">    agg: xarray.DataArray,</span>
+<span class="sd">        agg.values is either a 2D or 3D array of integers or floats.</span>
+<span class="sd">        The input value raster.</span>
+<span class="sd">    func: callable function to apply.</span>
+
+<span class="sd">    Returns</span>
+<span class="sd">    -------</span>
+
+<span class="sd">    Examples</span>
+<span class="sd">    --------</span>
+<span class="sd">    &gt;&gt;&gt; zones_val = np.array([[1, 1, 0, 2],</span>
+<span class="sd">    &gt;&gt;&gt;                      [0, 2, 1, 2]])</span>
+<span class="sd">    &gt;&gt;&gt; zones = xarray.DataArray(zones_val)</span>
+<span class="sd">    &gt;&gt;&gt; values_val = np.array([[2, -1, 5, 3],</span>
+<span class="sd">    &gt;&gt;&gt;                       [3, np.nan, 20, 10]])</span>
+<span class="sd">    &gt;&gt;&gt; agg = xarray.DataArray(values_val)</span>
+<span class="sd">    &gt;&gt;&gt; func = lambda x: 0</span>
+<span class="sd">    &gt;&gt;&gt; apply(zones, agg, func)</span>
+<span class="sd">    &gt;&gt;&gt; agg</span>
+<span class="sd">    &gt;&gt;&gt; array([[0, 0, 5, 0],</span>
+<span class="sd">    &gt;&gt;&gt;        [3, 0, 0, 0]])</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="k">if</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">zones</span><span class="p">,</span> <span class="n">xa</span><span class="o">.</span><span class="n">DataArray</span><span class="p">):</span>
+        <span class="k">raise</span> <span class="ne">TypeError</span><span class="p">(</span><span class="s2">&quot;zones_agg must be instance of DataArray&quot;</span><span class="p">)</span>
+
+    <span class="k">if</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">values</span><span class="p">,</span> <span class="n">xa</span><span class="o">.</span><span class="n">DataArray</span><span class="p">):</span>
+        <span class="k">raise</span> <span class="ne">TypeError</span><span class="p">(</span><span class="s2">&quot;values_agg must be instance of DataArray&quot;</span><span class="p">)</span>
+
+    <span class="k">if</span> <span class="n">zones</span><span class="o">.</span><span class="n">ndim</span> <span class="o">!=</span> <span class="mi">2</span><span class="p">:</span>
+        <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;zones_agg must be 2D&quot;</span><span class="p">)</span>
+
+    <span class="k">if</span> <span class="n">values</span><span class="o">.</span><span class="n">ndim</span> <span class="o">!=</span> <span class="mi">2</span> <span class="ow">and</span> <span class="n">values</span><span class="o">.</span><span class="n">ndim</span> <span class="o">!=</span> <span class="mi">3</span><span class="p">:</span>
+        <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;values_agg must be either 2D or 3D coordinates&quot;</span><span class="p">)</span>
+
+    <span class="c1"># get the value of aggs</span>
+    <span class="n">zones_val</span> <span class="o">=</span> <span class="n">zones</span><span class="o">.</span><span class="n">values</span>
+    <span class="n">values_val</span> <span class="o">=</span> <span class="n">values</span><span class="o">.</span><span class="n">values</span>
+
+    <span class="k">if</span> <span class="n">zones_val</span><span class="o">.</span><span class="n">shape</span> <span class="o">!=</span> <span class="n">values_val</span><span class="o">.</span><span class="n">shape</span><span class="p">[:</span><span class="mi">2</span><span class="p">]:</span>
+        <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span>
+            <span class="s2">&quot;Incompatible shapes between `zones` and `values`&quot;</span><span class="p">)</span>
+
+    <span class="k">if</span> <span class="ow">not</span> <span class="nb">issubclass</span><span class="p">(</span><span class="n">zones</span><span class="o">.</span><span class="n">values</span><span class="o">.</span><span class="n">dtype</span><span class="o">.</span><span class="n">type</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">integer</span><span class="p">):</span>
+        <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;`zones.values` must be an array of integers&quot;</span><span class="p">)</span>
+
+    <span class="k">if</span> <span class="ow">not</span> <span class="p">(</span><span class="nb">issubclass</span><span class="p">(</span><span class="n">values</span><span class="o">.</span><span class="n">values</span><span class="o">.</span><span class="n">dtype</span><span class="o">.</span><span class="n">type</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">integer</span><span class="p">)</span> <span class="ow">or</span>
+            <span class="nb">issubclass</span><span class="p">(</span><span class="n">values</span><span class="o">.</span><span class="n">values</span><span class="o">.</span><span class="n">dtype</span><span class="o">.</span><span class="n">type</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">float</span><span class="p">)):</span>
+        <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span>
+            <span class="s2">&quot;`values` must be an array of integers or float&quot;</span><span class="p">)</span>
+
+    <span class="c1"># entries of zone 0 remain the same</span>
+    <span class="n">remain_entries</span> <span class="o">=</span> <span class="n">zones_val</span> <span class="o">==</span> <span class="mi">0</span>
+
+    <span class="c1"># entries with a non-zero zone value</span>
+    <span class="n">zones_entries</span> <span class="o">=</span> <span class="n">zones_val</span> <span class="o">!=</span> <span class="mi">0</span>
+
+    <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">values</span><span class="o">.</span><span class="n">shape</span><span class="p">)</span> <span class="o">==</span> <span class="mi">3</span><span class="p">:</span>
+        <span class="n">z</span> <span class="o">=</span> <span class="n">values</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span>
+        <span class="c1"># add new z-dimension in case 3D `values` aggregate</span>
+        <span class="n">remain_entries</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">repeat</span><span class="p">(</span><span class="n">remain_entries</span><span class="p">[:,</span> <span class="p">:,</span> <span class="n">np</span><span class="o">.</span><span class="n">newaxis</span><span class="p">],</span> <span class="n">z</span><span class="p">,</span>
+                                   <span class="n">axis</span><span class="o">=-</span><span class="mi">1</span><span class="p">)</span>
+        <span class="n">zones_entries</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">repeat</span><span class="p">(</span><span class="n">zones_entries</span><span class="p">[:,</span> <span class="p">:,</span> <span class="n">np</span><span class="o">.</span><span class="n">newaxis</span><span class="p">],</span> <span class="n">z</span><span class="p">,</span> <span class="n">axis</span><span class="o">=-</span><span class="mi">1</span><span class="p">)</span>
+
+    <span class="n">remain_mask</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">ma</span><span class="o">.</span><span class="n">masked_array</span><span class="p">(</span><span class="n">values_val</span><span class="p">,</span> <span class="n">mask</span><span class="o">=</span><span class="n">remain_entries</span><span class="p">)</span>
+    <span class="n">zones_mask</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">ma</span><span class="o">.</span><span class="n">masked_array</span><span class="p">(</span><span class="n">values_val</span><span class="p">,</span> <span class="n">mask</span><span class="o">=</span><span class="n">zones_entries</span><span class="p">)</span>
+
+    <span class="c1"># apply func to corresponding `values` of `zones`</span>
+    <span class="n">vfunc</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">vectorize</span><span class="p">(</span><span class="n">func</span><span class="p">)</span>
+    <span class="n">values_func</span> <span class="o">=</span> <span class="n">vfunc</span><span class="p">(</span><span class="n">zones_mask</span><span class="p">)</span>
+    <span class="n">values</span><span class="o">.</span><span class="n">values</span> <span class="o">=</span> <span class="n">remain_mask</span><span class="o">.</span><span class="n">data</span> <span class="o">*</span> <span class="n">remain_mask</span><span class="o">.</span><span class="n">mask</span> \
+        <span class="o">+</span> <span class="n">values_func</span><span class="o">.</span><span class="n">data</span> <span class="o">*</span> <span class="n">values_func</span><span class="o">.</span><span class="n">mask</span>
+</pre></div>
+
+           </div>
+           
+          </div>
+          <footer>
+  
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>
+        &copy; Copyright 2020, Brendan Collins
+
+    </p>
+  </div>
+  Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a <a href="https://github.com/rtfd/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>. 
+
+</footer>
+
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+  
+
+
+  <script type="text/javascript">
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script>
+
+  
+  
+    
+   
+
+</body>
+</html>

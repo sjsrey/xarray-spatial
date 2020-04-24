@@ -1,0 +1,286 @@
+
+
+<!DOCTYPE html>
+<!--[if IE 8]><html class="no-js lt-ie9" lang="en" > <![endif]-->
+<!--[if gt IE 8]><!--> <html class="no-js" lang="en" > <!--<![endif]-->
+<head>
+  <meta charset="utf-8">
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  <title>xrspatial.curvature &mdash; Xarray_spatial  documentation</title>
+  
+
+  
+  
+  
+  
+
+  <script type="text/javascript" src="../../assets/js/modernizr.min.js"></script>
+  
+    
+      <script type="text/javascript" id="documentation_options" data-url_root="../../" src="../../assets/documentation_options.js"></script>
+        <script src="../../assets/jquery.js"></script>
+        <script src="../../assets/underscore.js"></script>
+        <script src="../../assets/doctools.js"></script>
+        <script src="../../assets/language_data.js"></script>
+        <script crossorigin="anonymous" integrity="sha256-Ae2Vz/4ePdIu6ZyI/5ZGsYnb+m0JlOmKPjt6XZ9JJkA=" src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.3.4/require.min.js"></script>
+    
+    <script type="text/javascript" src="../../js/theme.js"></script>
+
+    
+  <link rel="stylesheet" href="../../assets/css/theme.css" type="text/css" />
+  <link rel="stylesheet" href="../../assets/pygments.css" type="text/css" />
+  <link rel="stylesheet" href="../../assets/css/xarray_theme.css" type="text/css" />
+    <link rel="index" title="Index" href="../../genindex.html" />
+    <link rel="search" title="Search" href="../../search.html" /> 
+</head>
+
+<body class="wy-body-for-nav">
+
+   
+  <div class="wy-grid-for-nav">
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+          
+
+          
+            <a href="../../index.html">
+          
+
+          
+            
+            <img src="../../assets/logo.png" class="logo" alt="Logo"/>
+          
+          </a>
+
+          
+            
+            
+          
+
+          
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+          
+        </div>
+
+        <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+          
+            
+            
+              
+            
+            
+              <ul>
+<li class="toctree-l1"><a class="reference internal" href="../../slope.html">Slope</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../aspect.html">Aspect</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../curvature.html">Curvature</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../hillshade.html">Hillshade</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../normalized.html">Normalized Difference Vegetation Index (NDVI)</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../focal.html">Focal Statistics</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../zonal_statistics.html">Zonal Statistics</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../zonal_cross.html">Zonal Cross Tabulate</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../viewshed.html">Viewshed</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../proximity.html">Proximity</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../bump.html">Bump Mapping</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../perlin.html">Perlin Noise</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../procedural.html">Procedural Terrain Generation</a></li>
+</ul>
+
+            
+          
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" aria-label="top navigation">
+        
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../../index.html">Xarray_spatial</a>
+        
+      </nav>
+
+
+      <div class="wy-nav-content">
+        
+        <div class="rst-content">
+        
+          
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<div role="navigation" aria-label="breadcrumbs navigation">
+
+  <ul class="wy-breadcrumbs">
+    
+      <li><a href="../../index.html">Docs</a> &raquo;</li>
+        
+          <li><a href="../index.html">Module code</a> &raquo;</li>
+        
+      <li>xrspatial.curvature</li>
+    
+    
+      <li class="wy-breadcrumbs-aside">
+        
+      </li>
+    
+  </ul>
+
+  
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+            
+  <h1>Source code for xrspatial.curvature</h1><div class="highlight"><pre>
+<span></span><span class="kn">import</span> <span class="nn">xarray</span> <span class="k">as</span> <span class="nn">xr</span>
+<span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
+<span class="kn">from</span> <span class="nn">numba</span> <span class="kn">import</span> <span class="n">stencil</span><span class="p">,</span> <span class="n">vectorize</span>
+
+
+<span class="nd">@stencil</span>
+<span class="k">def</span> <span class="nf">kernel_D</span><span class="p">(</span><span class="n">arr</span><span class="p">):</span>
+    <span class="k">return</span> <span class="p">(</span><span class="n">arr</span><span class="p">[</span><span class="mi">0</span><span class="p">,</span> <span class="o">-</span><span class="mi">1</span><span class="p">]</span> <span class="o">+</span> <span class="n">arr</span><span class="p">[</span><span class="mi">0</span><span class="p">,</span> <span class="mi">1</span><span class="p">])</span> <span class="o">/</span> <span class="mi">2</span> <span class="o">-</span> <span class="n">arr</span><span class="p">[</span><span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">]</span>
+
+
+<span class="nd">@stencil</span>
+<span class="k">def</span> <span class="nf">kernel_E</span><span class="p">(</span><span class="n">arr</span><span class="p">):</span>
+    <span class="k">return</span> <span class="p">(</span><span class="n">arr</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">,</span> <span class="mi">0</span><span class="p">]</span> <span class="o">+</span> <span class="n">arr</span><span class="p">[</span><span class="mi">1</span><span class="p">,</span> <span class="mi">0</span><span class="p">])</span> <span class="o">/</span> <span class="mi">2</span> <span class="o">-</span> <span class="n">arr</span><span class="p">[</span><span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">]</span>
+
+
+<span class="nd">@vectorize</span><span class="p">([</span><span class="s2">&quot;float64(float64, float64)&quot;</span><span class="p">],</span> <span class="n">nopython</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">target</span><span class="o">=</span><span class="s2">&quot;parallel&quot;</span><span class="p">)</span>
+<span class="k">def</span> <span class="nf">_curvature</span><span class="p">(</span><span class="n">matrix_D</span><span class="p">,</span> <span class="n">matrix_E</span><span class="p">):</span>
+    <span class="n">curv</span> <span class="o">=</span> <span class="o">-</span><span class="mi">2</span> <span class="o">*</span> <span class="p">(</span><span class="n">matrix_D</span> <span class="o">+</span> <span class="n">matrix_E</span><span class="p">)</span> <span class="o">*</span> <span class="mi">100</span>
+    <span class="k">return</span> <span class="n">curv</span>
+
+
+<div class="viewcode-block" id="curvature"><a class="viewcode-back" href="../../curvature.html#xrspatial.curvature.curvature">[docs]</a><span class="k">def</span> <span class="nf">curvature</span><span class="p">(</span><span class="n">raster</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Compute the curvature (second derivatives) of a raster surface.</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    raster: xarray.DataArray</span>
+<span class="sd">        2D input raster image with shape=(height, width)</span>
+
+<span class="sd">    Returns</span>
+<span class="sd">    -------</span>
+<span class="sd">    curvature: xarray.DataArray</span>
+<span class="sd">        Curvature image with shape=(height, width)</span>
+<span class="sd">    Examples</span>
+<span class="sd">    --------</span>
+<span class="sd">    &gt;&gt;&gt; raster=np.array([[1, 1, 0, 2],[0, 2, 1, 2]])</span>
+<span class="sd">    &gt;&gt;&gt; temp_raster = xarray.DataArray(raster, dims=[&#39;y&#39;, &#39;x&#39;])</span>
+<span class="sd">    &gt;&gt;&gt; xrspatial.curvature(temp_raster)</span>
+<span class="sd">    Out[]:</span>
+<span class="sd">    &lt;xarray.DataArray (y: 2, x: 4)&gt;</span>
+<span class="sd">    array([[  -0.,  100., -300.,   -0.],</span>
+<span class="sd">       [  -0.,  300., -200.,   -0.]])</span>
+<span class="sd">    Dimensions without coordinates: y, x</span>
+
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="k">if</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">raster</span><span class="p">,</span> <span class="n">xr</span><span class="o">.</span><span class="n">DataArray</span><span class="p">):</span>
+        <span class="k">raise</span> <span class="ne">TypeError</span><span class="p">(</span><span class="s2">&quot;`raster` must be instance of DataArray&quot;</span><span class="p">)</span>
+
+    <span class="k">if</span> <span class="n">raster</span><span class="o">.</span><span class="n">ndim</span> <span class="o">!=</span> <span class="mi">2</span><span class="p">:</span>
+        <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;`raster` must be 2D&quot;</span><span class="p">)</span>
+
+    <span class="k">if</span> <span class="ow">not</span> <span class="p">(</span><span class="nb">issubclass</span><span class="p">(</span><span class="n">raster</span><span class="o">.</span><span class="n">values</span><span class="o">.</span><span class="n">dtype</span><span class="o">.</span><span class="n">type</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">integer</span><span class="p">)</span> <span class="ow">or</span>
+            <span class="nb">issubclass</span><span class="p">(</span><span class="n">raster</span><span class="o">.</span><span class="n">values</span><span class="o">.</span><span class="n">dtype</span><span class="o">.</span><span class="n">type</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">float</span><span class="p">)):</span>
+        <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span>
+            <span class="s2">&quot;`raster` must be an array of integers or float&quot;</span><span class="p">)</span>
+
+    <span class="n">raster_values</span> <span class="o">=</span> <span class="n">raster</span><span class="o">.</span><span class="n">values</span>
+
+    <span class="n">cell_size_x</span> <span class="o">=</span> <span class="mi">1</span>
+    <span class="n">cell_size_y</span> <span class="o">=</span> <span class="mi">1</span>
+
+    <span class="c1"># calculate cell size from input `raster`</span>
+    <span class="k">for</span> <span class="n">dim</span> <span class="ow">in</span> <span class="n">raster</span><span class="o">.</span><span class="n">dims</span><span class="p">:</span>
+        <span class="k">if</span> <span class="p">(</span><span class="n">dim</span><span class="o">.</span><span class="n">lower</span><span class="p">()</span><span class="o">.</span><span class="n">count</span><span class="p">(</span><span class="s1">&#39;x&#39;</span><span class="p">))</span> <span class="o">&gt;</span> <span class="mi">0</span> <span class="ow">or</span> <span class="p">(</span><span class="n">dim</span><span class="o">.</span><span class="n">lower</span><span class="p">()</span><span class="o">.</span><span class="n">count</span><span class="p">(</span><span class="s1">&#39;lon&#39;</span><span class="p">))</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">:</span>
+            <span class="c1"># dimension of x-coordinates</span>
+            <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">raster</span><span class="p">[</span><span class="n">dim</span><span class="p">])</span> <span class="o">&gt;</span> <span class="mi">1</span><span class="p">:</span>
+                <span class="n">cell_size_x</span> <span class="o">=</span> <span class="n">raster</span><span class="p">[</span><span class="n">dim</span><span class="p">]</span><span class="o">.</span><span class="n">values</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="o">-</span> <span class="n">raster</span><span class="p">[</span><span class="n">dim</span><span class="p">]</span><span class="o">.</span><span class="n">values</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+        <span class="k">elif</span> <span class="p">(</span><span class="n">dim</span><span class="o">.</span><span class="n">lower</span><span class="p">()</span><span class="o">.</span><span class="n">count</span><span class="p">(</span><span class="s1">&#39;y&#39;</span><span class="p">))</span> <span class="o">&gt;</span> <span class="mi">0</span> <span class="ow">or</span> <span class="p">(</span><span class="n">dim</span><span class="o">.</span><span class="n">lower</span><span class="p">()</span><span class="o">.</span><span class="n">count</span><span class="p">(</span><span class="s1">&#39;lat&#39;</span><span class="p">))</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">:</span>
+            <span class="c1"># dimension of y-coordinates</span>
+            <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">raster</span><span class="p">[</span><span class="n">dim</span><span class="p">])</span> <span class="o">&gt;</span> <span class="mi">1</span><span class="p">:</span>
+                <span class="n">cell_size_y</span> <span class="o">=</span> <span class="n">raster</span><span class="p">[</span><span class="n">dim</span><span class="p">]</span><span class="o">.</span><span class="n">values</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="o">-</span> <span class="n">raster</span><span class="p">[</span><span class="n">dim</span><span class="p">]</span><span class="o">.</span><span class="n">values</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+
+    <span class="n">cell_size</span> <span class="o">=</span> <span class="p">(</span><span class="n">cell_size_x</span> <span class="o">+</span> <span class="n">cell_size_y</span><span class="p">)</span> <span class="o">/</span> <span class="mi">2</span>
+
+    <span class="n">matrix_D</span> <span class="o">=</span> <span class="n">kernel_D</span><span class="p">(</span><span class="n">raster_values</span><span class="p">)</span>
+    <span class="n">matrix_E</span> <span class="o">=</span> <span class="n">kernel_E</span><span class="p">(</span><span class="n">raster_values</span><span class="p">)</span>
+
+    <span class="n">curvature_values</span> <span class="o">=</span> <span class="n">_curvature</span><span class="p">(</span><span class="n">matrix_D</span><span class="p">,</span> <span class="n">matrix_E</span><span class="p">)</span> <span class="o">/</span> <span class="p">(</span><span class="n">cell_size</span> <span class="o">*</span> <span class="n">cell_size</span><span class="p">)</span>
+    <span class="n">result</span> <span class="o">=</span> <span class="n">xr</span><span class="o">.</span><span class="n">DataArray</span><span class="p">(</span><span class="n">curvature_values</span><span class="p">,</span>
+                          <span class="n">coords</span><span class="o">=</span><span class="n">raster</span><span class="o">.</span><span class="n">coords</span><span class="p">,</span>
+                          <span class="n">dims</span><span class="o">=</span><span class="n">raster</span><span class="o">.</span><span class="n">dims</span><span class="p">,</span>
+                          <span class="n">attrs</span><span class="o">=</span><span class="n">raster</span><span class="o">.</span><span class="n">attrs</span><span class="p">)</span>
+
+    <span class="k">return</span> <span class="n">result</span></div>
+</pre></div>
+
+           </div>
+           
+          </div>
+          <footer>
+  
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>
+        &copy; Copyright 2020, Brendan Collins
+
+    </p>
+  </div>
+  Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a <a href="https://github.com/rtfd/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>. 
+
+</footer>
+
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+  
+
+
+  <script type="text/javascript">
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script>
+
+  
+  
+    
+   
+
+</body>
+</html>
